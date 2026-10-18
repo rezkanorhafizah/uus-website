@@ -1,0 +1,1794 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard Divisi Usaha Syariah</title>
+  <!-- Google Fonts: Poppins -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <style>
+    :root {
+      --bg-light: #e6f4ea;
+      --bg-card-login: #cfead9;
+      --primary-green: #0a7340;
+      --primary-green-dark: #06522c;
+      --primary-green-hover: #085c33;
+      --card-teal: #0b8793;
+      --card-purple: #6343c6;
+      --card-orange: #ea8010;
+      --card-blue: #1d4ed8;
+      --text-dark: #1e293b;
+      --text-muted: #64748b;
+      --sidebar-width: 275px;
+      --sidebar-collapsed-width: 80px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-light);
+      color: var(--text-dark);
+      overflow-x: hidden;
+    }
+
+    /* ================= HALAMAN LOGIN ================= */
+    #login-page {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      width: 100vw;
+      background-color: #e3f3e8;
+    }
+
+    .login-card {
+      background-color: var(--bg-card-login);
+      padding: 45px 40px;
+      border-radius: 20px;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 15px 35px rgba(10, 115, 64, 0.08);
+    }
+
+    .login-card h1 {
+      color: var(--primary-green);
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: 6px;
+    }
+
+    .login-card p.subtitle {
+      color: #4b6a59;
+      font-size: 13px;
+      margin-bottom: 28px;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-group label {
+      display: block;
+      color: #1b5236;
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 13px 16px;
+      border: 1px solid #d1e2d7;
+      border-radius: 10px;
+      font-size: 14px;
+      outline: none;
+      background: #ffffff;
+    }
+
+    .form-group input:focus {
+      border-color: var(--primary-green);
+    }
+
+    .btn-login {
+      width: 100%;
+      padding: 13px;
+      background-color: var(--primary-green);
+      color: #ffffff;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background 0.2s;
+    }
+
+    .btn-login:hover {
+      background-color: var(--primary-green-hover);
+    }
+
+    .error-msg {
+      color: #dc2626;
+      font-size: 12px;
+      margin-top: 10px;
+      text-align: center;
+      display: none;
+    }
+
+    /* ================= HALAMAN DASHBOARD ================= */
+    #dashboard-page {
+      display: none;
+      min-height: 100vh;
+      padding: 14px;
+    }
+
+    .app-layout {
+      display: flex;
+      width: 100%;
+      min-height: calc(100vh - 28px);
+      gap: 20px;
+    }
+
+    /* ================= SIDEBAR MODERN ================= */
+    .sidebar {
+      width: var(--sidebar-width);
+      background: linear-gradient(165deg, #0b7a44 0%, #075931 100%);
+      border-radius: 24px;
+      color: #ffffff;
+      padding: 24px 0;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      max-height: calc(100vh - 28px);
+      position: sticky;
+      top: 14px;
+      box-shadow: 0 12px 30px rgba(7, 89, 49, 0.22);
+      transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 50;
+    }
+
+    .sidebar.collapsed {
+      width: var(--sidebar-collapsed-width);
+    }
+
+    .sidebar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 20px 0 22px;
+      margin-bottom: 24px;
+      min-height: 48px;
+    }
+
+    .brand-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      background: rgba(255, 255, 255, 0.16);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .brand-text h2 {
+      font-size: 16.5px;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+
+    .sidebar.collapsed .brand-wrapper {
+      display: none;
+    }
+
+    .sidebar.collapsed .sidebar-header {
+      justify-content: center;
+      padding: 0;
+    }
+
+    .btn-collapse {
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: white;
+      width: 36px;
+      height: 36px;
+      border-radius: 11px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.25s ease;
+    }
+
+    .btn-collapse:hover {
+      background: rgba(255, 255, 255, 0.28);
+    }
+
+    .btn-collapse svg {
+      width: 18px;
+      height: 18px;
+      transition: transform 0.35s ease;
+    }
+
+    .sidebar.collapsed .btn-collapse svg {
+      transform: rotate(180deg);
+    }
+
+    .menu-caption {
+      font-size: 10.5px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: rgba(255, 255, 255, 0.55);
+      padding: 0 24px;
+      margin-bottom: 10px;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .sidebar.collapsed .menu-caption {
+      opacity: 0;
+      height: 0;
+      margin: 0;
+    }
+
+    .nav-scroll {
+      overflow-y: auto;
+      overflow-x: hidden;
+      flex: 1;
+      padding-bottom: 16px;
+    }
+
+    .nav-scroll::-webkit-scrollbar {
+      width: 4px;
+    }
+    .nav-scroll::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.22);
+      border-radius: 4px;
+    }
+
+    .nav-list {
+      list-style: none;
+    }
+
+    .nav-item {
+      padding: 12px 18px;
+      margin-left: 14px;
+      border-radius: 28px 0 0 28px;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.25s ease;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    .nav-item-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .nav-icon {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+
+    .nav-item.active {
+      background-color: var(--bg-light);
+      color: var(--primary-green);
+      font-weight: 700;
+      box-shadow: -4px 4px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    .nav-item:not(.active):hover {
+      background-color: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+    }
+
+    .chevron-icon {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      transition: transform 0.3s ease;
+      opacity: 0.8;
+    }
+
+    .nav-item.open-menu .chevron-icon {
+      transform: rotate(180deg);
+    }
+
+    .sidebar.collapsed .nav-item {
+      margin: 6px 12px;
+      padding: 13px 0;
+      border-radius: 14px;
+      justify-content: center;
+    }
+
+    .sidebar.collapsed .nav-label,
+    .sidebar.collapsed .chevron-icon,
+    .sidebar.collapsed .submenu-list {
+      display: none !important;
+    }
+
+    .submenu-list {
+      list-style: none;
+      margin: 2px 14px 10px 31px;
+      padding-left: 14px;
+      border-left: 1.5px solid rgba(255, 255, 255, 0.22);
+      display: none;
+    }
+
+    .submenu-list.open {
+      display: block;
+    }
+
+    .submenu-item {
+      padding: 8px 12px;
+      font-size: 11.5px;
+      color: rgba(255, 255, 255, 0.78);
+      cursor: pointer;
+      line-height: 1.35;
+      border-radius: 9px;
+      transition: all 0.2s;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 2px;
+    }
+
+    .submenu-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background-color: rgba(255, 255, 255, 0.45);
+      flex-shrink: 0;
+    }
+
+    .submenu-item:hover {
+      color: #ffffff;
+      background-color: rgba(255, 255, 255, 0.1);
+      padding-left: 15px;
+    }
+
+    .submenu-item.active-sub {
+      color: #ffffff;
+      font-weight: 700;
+      background-color: rgba(255, 255, 255, 0.18);
+    }
+
+    .submenu-item.active-sub .submenu-dot {
+      background-color: #4ade80;
+      transform: scale(1.4);
+      box-shadow: 0 0 6px #4ade80;
+    }
+
+    /* ================= AREA UTAMA ================= */
+    .main-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding-right: 4px;
+      min-width: 0;
+    }
+
+    /* TOPBAR */
+    .topbar {
+      background-color: #ffffff;
+      border-radius: 18px;
+      padding: 15px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .btn-toggle-top {
+      background-color: #f1f5f9;
+      border: none;
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary-green);
+      cursor: pointer;
+    }
+
+    .topbar-titles h1 {
+      font-size: 18.5px;
+      font-weight: 700;
+      color: #1e293b;
+    }
+
+    .breadcrumb-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 2px;
+    }
+
+    .topbar-titles p {
+      font-size: 11px;
+      color: #64748b;
+      text-transform: uppercase;
+      font-weight: 500;
+    }
+
+    .sync-status-badge {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 9px;
+      border-radius: 12px;
+      background-color: #dcfce7;
+      color: #15803d;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .sync-status-badge.fallback {
+      background-color: #fef3c7;
+      color: #b45309;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-sync {
+      background-color: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      color: var(--primary-green);
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-sync:hover {
+      background-color: #d1fae5;
+    }
+
+    .btn-sync.spinning svg {
+      animation: spin 0.9s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .session-timer {
+      font-size: 12px;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .user-badge {
+      display: flex;
+      align-items: center;
+      background-color: #f1f5f9;
+      padding: 5px 14px 5px 6px;
+      border-radius: 40px;
+      gap: 10px;
+    }
+
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      background-color: var(--primary-green);
+      color: #ffffff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .user-details .name {
+      font-size: 11px;
+      font-weight: 700;
+      color: #1e293b;
+    }
+
+    .user-details .role {
+      font-size: 10.5px;
+      color: #64748b;
+    }
+
+    .btn-logout {
+      background-color: #f1f5f9;
+      border: none;
+      padding: 9px 15px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #334155;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-logout:hover {
+      background-color: #fee2e2;
+      color: #dc2626;
+    }
+
+    /* ================= FILTER UTAMA ================= */
+    .filter-grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    .filter-card {
+      background-color: #ffffff;
+      padding: 12px 16px;
+      border-radius: 14px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+      border: 1px solid rgba(10, 115, 64, 0.08);
+    }
+
+    .filter-card label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--primary-green);
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .filter-card select {
+      width: 100%;
+      border: none;
+      outline: none;
+      font-size: 13px;
+      font-weight: 600;
+      color: #1e293b;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    /* ================= HALAMAN 1: HIGHLIGHT KINERJA UTAMA ================= */
+    #page-highlight-home {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .highlight-banner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .highlight-banner h2 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1e293b;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .highlight-banner span.hint {
+      font-size: 12px;
+      color: #64748b;
+    }
+
+    .highlight-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    .hl-card {
+      border-radius: 20px;
+      padding: 24px 26px;
+      color: #ffffff;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 195px;
+    }
+
+    .hl-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 14px 28px rgba(0, 0, 0, 0.14);
+    }
+
+    .hl-card.card-aset { background: linear-gradient(135deg, #0a7340 0%, #064e2a 100%); }
+    .hl-card.card-dpk  { background: linear-gradient(135deg, #0b8793 0%, #065f68 100%); }
+    .hl-card.card-pby  { background: linear-gradient(135deg, #6343c6 0%, #432996 100%); }
+
+    .hl-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 18px;
+    }
+
+    .hl-card-title {
+      font-size: 15px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .hl-card-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hl-metrics-row {
+      display: flex;
+      gap: 28px;
+      margin-bottom: 16px;
+    }
+
+    .hl-metric-item span.lbl {
+      display: block;
+      font-size: 10.5px;
+      text-transform: uppercase;
+      opacity: 0.82;
+      margin-bottom: 3px;
+    }
+
+    .hl-metric-item span.val {
+      font-size: 21px;
+      font-weight: 700;
+    }
+
+    .hl-card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.18);
+      font-size: 11.5px;
+      font-weight: 600;
+    }
+
+    .hl-card-footer .goto-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(255, 255, 255, 0.2);
+      padding: 4px 11px;
+      border-radius: 20px;
+      font-size: 11px;
+    }
+
+    /* ================= STYLE KOMPONEN UMUM ================= */
+    .btn-back-highlight {
+      background-color: #ffffff;
+      border: 1px solid #cbd5e1;
+      color: var(--primary-green);
+      padding: 7px 14px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-back-highlight:hover {
+      background-color: #f1f8f4;
+      border-color: var(--primary-green);
+    }
+
+    .kpi-grid-5 {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr 1fr 1fr 1.1fr;
+      gap: 14px;
+    }
+
+    .kpi-box {
+      border-radius: 16px;
+      padding: 18px 20px;
+      color: #ffffff;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kpi-box.bg-main { background: linear-gradient(135deg, #0a7340 0%, #06522c 100%); }
+    .kpi-box.bg-yoy  { background: linear-gradient(135deg, #0b8793 0%, #07636c 100%); }
+    .kpi-box.bg-ytd  { background: linear-gradient(135deg, #6343c6 0%, #4a2ea3 100%); }
+    .kpi-box.bg-mtm  { background: linear-gradient(135deg, #ea8010 0%, #c46404 100%); }
+    .kpi-box.bg-rbb  { background: linear-gradient(135deg, #1d4ed8 0%, #163aa3 100%); }
+
+    .kpi-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      opacity: 0.92;
+      margin-bottom: 8px;
+    }
+
+    .kpi-main-val {
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 4px;
+    }
+
+    .kpi-sub-caption {
+      font-size: 10.5px;
+      opacity: 0.82;
+      font-weight: 400;
+    }
+
+    .chart-card {
+      background-color: #ffffff;
+      border-radius: 18px;
+      padding: 20px 24px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chart-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .chart-card-header h3 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1e293b;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .chart-badge {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--primary-green);
+      background-color: #e6f4ea;
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+
+    .canvas-line-wrap {
+      position: relative;
+      height: 270px;
+      width: 100%;
+    }
+
+    .middle-charts-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr;
+      gap: 16px;
+    }
+
+    .canvas-mid-wrap {
+      position: relative;
+      height: 310px;
+      width: 100%;
+    }
+
+    .table-card {
+      background-color: #ffffff;
+      border-radius: 18px;
+      padding: 20px 24px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+      margin-bottom: 16px;
+    }
+
+    .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+      margin-top: 10px;
+    }
+
+    table.realisasi-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+    }
+
+    table.realisasi-table thead th {
+      background-color: #f1f8f4;
+      color: var(--primary-green);
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 11px;
+      padding: 12px 14px;
+      text-align: left;
+      border-bottom: 2px solid #cfead9;
+      white-space: nowrap;
+    }
+
+    table.realisasi-table thead th.num-col,
+    table.realisasi-table tbody td.num-col {
+      text-align: right;
+    }
+
+    table.realisasi-table tbody td {
+      padding: 11px 14px;
+      border-bottom: 1px solid #f1f5f9;
+      color: #334155;
+      white-space: nowrap;
+    }
+
+    table.realisasi-table tbody tr:hover {
+      background-color: #f8fafc;
+    }
+
+    table.realisasi-table tbody tr.row-highlight {
+      background-color: #ecfdf5;
+      font-weight: 700;
+      color: var(--primary-green-dark);
+    }
+
+    .badge-growth {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 11.5px;
+    }
+
+    .badge-pos { background-color: #dcfce7; color: #15803d; }
+    .badge-neg { background-color: #fee2e2; color: #b91c1c; }
+    .badge-neutral { background-color: #f1f5f9; color: #64748b; }
+
+    @media (max-width: 1200px) {
+      .filter-grid-4 { grid-template-columns: repeat(2, 1fr); }
+      .highlight-grid-3 { grid-template-columns: 1fr; }
+      .kpi-grid-5 { grid-template-columns: repeat(2, 1fr); }
+      .middle-charts-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ================= TAMPILAN LOGIN ================= -->
+  <div id="login-page">
+    <div class="login-card">
+      <h1>DASHBOARD DIVISI USAHA<br>SYARIAH</h1>
+      <p class="subtitle">Silakan masuk untuk melanjutkan</p>
+      <div class="form-group"><label>Username</label><input type="text" id="username" placeholder="Masukkan username (admin)" autocomplete="off"></div>
+      <div class="form-group"><label>Password</label><input type="password" id="password" placeholder="Masukkan password (123)"></div>
+      <button class="btn-login" id="btnLogin" onclick="prosesLogin()">Masuk</button>
+      <div class="error-msg" id="loginError">Username atau password salah!</div>
+    </div>
+  </div>
+
+  <!-- ================= TAMPILAN UTAMA DASHBOARD ================= -->
+  <div id="dashboard-page">
+    <div class="app-layout">
+      
+      <!-- SIDEBAR -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <div class="brand-wrapper">
+            <div class="brand-icon"><i data-lucide="landmark" style="width: 20px; height: 20px; color: #fff;"></i></div>
+            <div class="brand-text"><h2>Unit Usaha<br>Syariah</h2></div>
+          </div>
+          <button class="btn-collapse" onclick="toggleSidebar()" title="Sembunyikan / Tampilkan Menu"><i data-lucide="chevron-left"></i></button>
+        </div>
+        <div class="menu-caption">Menu Navigasi</div>
+        <div class="nav-scroll"><ul class="nav-list" id="sidebarMenuContainer"></ul></div>
+      </aside>
+
+      <!-- AREA UTAMA -->
+      <main class="main-area">
+        <header class="topbar">
+          <div class="topbar-left">
+            <button class="btn-toggle-top" onclick="toggleSidebar()"><i data-lucide="panel-left" style="width: 19px; height: 19px;"></i></button>
+            <div class="topbar-titles">
+              <h1>DASHBOARD DIVISI USAHA SYARIAH</h1>
+              <div class="breadcrumb-row">
+                <p id="breadcrumb">HIGHLIGHT KINERJA / RINGKASAN EKSEKUTIF</p>
+                <span class="sync-status-badge" id="syncBadge">Memuat Spreadsheet...</span>
+              </div>
+            </div>
+          </div>
+          <div class="topbar-right">
+            <button class="btn-sync" id="btnSync" onclick="sinkronkanDataSheet(true)">
+              <i data-lucide="refresh-cw" style="width: 14px; height: 14px;"></i><span>Sinkronkan Data</span>
+            </button>
+            <div class="session-timer"><i data-lucide="clock" style="width: 14px; height: 14px;"></i><span>Sisa sesi <strong id="timer">59:57</strong></span></div>
+            <div class="user-badge"><div class="user-avatar" id="userInisial">D</div><div class="user-details"><div class="name" id="userName">DIVISI USAHA SYARIAH</div><div class="role" id="userRole">User</div></div></div>
+            <button class="btn-logout" onclick="prosesLogout()"><i data-lucide="log-out" style="width: 14px; height: 14px;"></i><span>Keluar</span></button>
+          </div>
+        </header>
+
+        <!-- 4 FILTER UTAMA -->
+        <div class="filter-grid-4">
+          <div class="filter-card"><label><i data-lucide="calendar" style="width:13px;height:13px;"></i> Tanggal Data</label><select id="filterTanggal" onchange="terapkanFilter()"></select></div>
+          <div class="filter-card"><label><i data-lucide="layers" style="width:13px;height:13px;"></i> Series Data</label><select id="filterSeries" onchange="terapkanFilter()"><option value="Bulanan" selected>Bulanan</option><option value="Triwulanan">Triwulanan</option><option value="Tahunan">Tahunan</option></select></div>
+          <div class="filter-card"><label><i data-lucide="building-2" style="width:13px;height:13px;"></i> Konsolidasi Cabang</label><select id="filterKonsolidasi" onchange="onKonsolidasiChange()"><option value="Unit Usaha Syariah">Unit Usaha Syariah</option><option value="KCS Banjarmasin Konsolidasi">Konsolidasi KCS Banjarmasin</option><option value="KCS Kandangan Konsolidasi">Konsolidasi KCS Kandangan</option><option value="UUS KP">UUS KP</option></select></div>
+          <div class="filter-card"><label><i data-lucide="map-pin" style="width:13px;height:13px;"></i> Unit Kerja</label><select id="filterUnitKerja" onchange="terapkanFilter()"></select></div>
+        </div>
+
+        <!-- ================= VIEW 1: HIGHLIGHT KINERJA UTAMA ================= -->
+        <div id="page-highlight-home">
+          <div class="highlight-banner">
+            <h2><i data-lucide="sparkles" style="width: 18px; color: var(--primary-green);"></i><span>HIGHLIGHT KINERJA UTAMA</span></h2>
+            <span class="hint">Klik pada salah satu kartu di bawah untuk membuka halaman detailnya</span>
+          </div>
+
+          <div class="highlight-grid-3">
+            <!-- KARTU 1: ASET & LABA (Membuka hlaset.html) -->
+            <div class="hl-card card-aset" onclick="bukaHalamanHlAset()">
+              <div>
+                <div class="hl-card-top">
+                  <div><div class="hl-card-title">ASET & LABA</div><div style="font-size: 11px; opacity: 0.8;" id="hl-sub-aset">Unit Usaha Syariah</div></div>
+                  <div class="hl-card-icon"><i data-lucide="trending-up" style="color: #fff;"></i></div>
+                </div>
+                <div class="hl-metrics-row">
+                  <div class="hl-metric-item"><span class="lbl">Total Aset</span><span class="val" id="hl-val-aset">Rp 0</span></div>
+                  <div class="hl-metric-item"><span class="lbl">Capaian RBB/C</span><span class="val" id="hl-rbb-aset">0,00%</span></div>
+                </div>
+              </div>
+              <div class="hl-card-footer">
+                <span id="hl-yoy-aset">YoY: 0,00%</span>
+                <span class="goto-btn">Buka Halaman Aset <i data-lucide="arrow-right" style="width: 13px;"></i></span>
+              </div>
+            </div>
+
+            <!-- KARTU 2: DPK -->
+            <div class="hl-card card-dpk" onclick="navigasiKeHalaman('dpk', 'dpk_total')">
+              <div>
+                <div class="hl-card-top">
+                  <div><div class="hl-card-title">DANA PIHAK KETIGA (DPK)</div><div style="font-size: 11px; opacity: 0.8;" id="hl-sub-dpk">Unit Usaha Syariah</div></div>
+                  <div class="hl-card-icon"><i data-lucide="wallet" style="color: #fff;"></i></div>
+                </div>
+                <div class="hl-metrics-row">
+                  <div class="hl-metric-item"><span class="lbl">NOA DPK</span><span class="val" id="hl-noa-dpk">0</span></div>
+                  <div class="hl-metric-item"><span class="lbl">Nominal DPK</span><span class="val" id="hl-val-dpk">Rp 0</span></div>
+                </div>
+              </div>
+              <div class="hl-card-footer"><span>Giro, Tabungan, Deposito</span><span class="goto-btn">Buka Halaman DPK <i data-lucide="arrow-right" style="width: 13px;"></i></span></div>
+            </div>
+
+            <!-- KARTU 3: PEMBIAYAAN -->
+            <div class="hl-card card-pby" onclick="navigasiKeHalaman('pembiayaan', 'py_total')">
+              <div>
+                <div class="hl-card-top">
+                  <div><div class="hl-card-title">PEMBIAYAAN</div><div style="font-size: 11px; opacity: 0.8;" id="hl-sub-pby">Unit Usaha Syariah</div></div>
+                  <div class="hl-card-icon"><i data-lucide="hand-coins" style="color: #fff;"></i></div>
+                </div>
+                <div class="hl-metrics-row">
+                  <div class="hl-metric-item"><span class="lbl">Total Pembiayaan</span><span class="val" id="hl-val-pby">Rp 0</span></div>
+                  <div class="hl-metric-item"><span class="lbl">Capaian RBB/C</span><span class="val" id="hl-rbb-pby">0,00%</span></div>
+                </div>
+              </div>
+              <div class="hl-card-footer"><span>Korporate, UMKM, Konsumer</span><span class="goto-btn">Buka Pembiayaan <i data-lucide="arrow-right" style="width: 13px;"></i></span></div>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <h3><i data-lucide="bar-chart-2" style="width:18px;height:18px;color:var(--primary-green);"></i><span>Tren Ringkasan Highlight Kinerja (Aset vs Target RBB/C)</span></h3>
+              <span class="chart-badge" id="badgeHighlightSeries">Series: Bulanan</span>
+            </div>
+            <div class="canvas-line-wrap" style="height: 300px;"><canvas id="highlightOverviewChart"></canvas></div>
+          </div>
+        </div>
+
+        <!-- ================= VIEW 2: hlaset.html ================= -->
+        <?!= include('hlaset'); ?>
+
+        <!-- ================= VIEW 3: aset.html ================= -->
+        <?!= include('aset'); ?>
+
+      </main>
+    </div>
+  </div>
+
+  <script>
+    const MENU_CONFIG = [
+      {
+        id: 'highlight', title: 'Highlight Kinerja', icon: 'sparkles',
+        items: [
+          { id: 'hl_aset_laba', name: 'Aset & Laba', mode: 'HL_ASET' },
+          { id: 'hl_dpk', name: 'DPK', targetMenu: 'dpk', targetSub: 'dpk_total', metric: 'Total DPK', sheet: 'Aset 1' },
+          { id: 'hl_pembiayaan', name: 'Pembiayaan', targetMenu: 'pembiayaan', targetSub: 'py_total', metric: 'Total Pembiayaan', sheet: 'Pby 1' }
+        ]
+      },
+      {
+        id: 'aset_laba', title: 'Aset & Laba', icon: 'trending-up',
+        items: [
+          { id: 'al_aset', name: 'Aset', metric: 'Aset', sheet: 'Aset 1' },
+          { id: 'al_laba', name: 'Laba', metric: 'Laba', sheet: 'Laba 1' },
+          { id: 'al_pend_ops', name: 'Pendapatan Operasional', metric: 'Pendapatan Operasional', sheet: 'Pend Opr 1' },
+          { id: 'al_biaya_ops', name: 'Biaya Operasional', metric: 'Biaya Operasional', sheet: 'By Opr 1' },
+          { id: 'al_pend_penyaluran', name: 'Pendapatan Penyaluran Dana', metric: 'Pendapatan Penyaluran Dana', sheet: 'Peny Dana 1' },
+          { id: 'al_biaya_bagihasil', name: 'Biaya Bagi Hasil & Bonus', metric: 'Biaya Bagi Hasil', sheet: 'By BagHas 1' },
+          { id: 'al_fbi', name: 'Pendapatan Fee Based Income', metric: 'Fee Based Income', sheet: 'FBI 1' }
+        ]
+      },
+      {
+        id: 'dpk', title: 'Dana Pihak Ketiga', icon: 'wallet',
+        items: [{ id: 'dpk_total', name: 'Total DPK', metric: 'Total DPK', sheet: 'Aset 1' }]
+      },
+      {
+        id: 'pembiayaan', title: 'Pembiayaan', icon: 'hand-coins',
+        items: [{ id: 'py_total', name: 'Total Pembiayaan', metric: 'Total Pembiayaan', sheet: 'Pby 1' }]
+      },
+      {
+        id: 'rasio', title: 'Rasio', icon: 'pie-chart',
+        items: [{ id: 'rs_roa', name: 'ROA', metric: 'ROA', sheet: 'Aset 1' }]
+      }
+    ];
+
+    const RAW_ASET_1 = [
+      ["Jul 2025","2025-07-01","Unit Usaha Syariah",3537910,0,0,0,0,"Unit Usaha Syariah","","","",""],
+      ["Agt 2025","2025-08-01","Unit Usaha Syariah",3491370,0,0,3537910,0,"Unit Usaha Syariah","","","",""],
+      ["Sep 2025","2025-09-01","Unit Usaha Syariah",3611670,0,0,3491370,0,"Unit Usaha Syariah","","","",""],
+      ["Okt 2025","2025-10-01","Unit Usaha Syariah",3405610,0,0,3611670,0,"Unit Usaha Syariah","","","",""],
+      ["Nov 2025","2025-11-01","Unit Usaha Syariah",3262720,0,0,3405610,0,"Unit Usaha Syariah","","","",""],
+      ["Des 2025","2025-12-01","Unit Usaha Syariah",3592240,0,0,3262720,0,"Unit Usaha Syariah","","","",""],
+      ["Jan 2026","2026-01-01","Unit Usaha Syariah",3366070,0,3592240,3592240,3810160,"Unit Usaha Syariah","0,14%","-6,30%","-6,30%","98,52%"],
+      ["Feb 2026","2026-02-01","Unit Usaha Syariah",3344260,0,3592240,3366070,3853710,"Unit Usaha Syariah","-0,42%","-6,90%","-0,65%","87,56%"],
+      ["Mar 2026","2026-03-01","Unit Usaha Syariah",3380040,0,3592240,3344260,3843040,"Unit Usaha Syariah","1,22%","-5,91%","1,07%","87,95%"],
+      ["Apr 2026","2026-04-01","Unit Usaha Syariah",3441090,0,3592240,3380040,3522010,"Unit Usaha Syariah","-2,82%","-4,21%","1,81%","97,70%"],
+      ["Mei 2026","2026-05-01","Unit Usaha Syariah",3350260,0,3592240,3441090,3729730,"Unit Usaha Syariah","-4,33%","-6,74%","-2,64%","89,83%"],
+      ["Jun 2026","2026-06-01","Unit Usaha Syariah",3391050,0,3592240,3350260,3853530,"Unit Usaha Syariah","-4,48%","-5,60%","1,22%","88,00%"],
+      ["Jul 2026","2026-07-01","Unit Usaha Syariah",3465100,3537910,3592240,3391050,3888560,"Unit Usaha Syariah","-2,06%","-3,54%","2,18%","89,11%"],
+      ["Agt 2026","2026-08-01","Unit Usaha Syariah",3727490,3491370,3592240,3465100,3935490,"Unit Usaha Syariah","6,76%","3,77%","7,57%","94,71%"],
+      ["Sept 2026","2026-09-01","Unit Usaha Syariah",3776720,3611670,3592240,3727490,3964520,"Unit Usaha Syariah","4,57%","5,14%","1,32%","95,26%"]
+    ];
+
+    const RAW_LABA_1 = [
+      ["Jul 2025","2025-07-01","Unit Usaha Syariah",39834,0,0,0,0,"Unit Usaha Syariah","","","",""],
+      ["Agt 2025","2025-08-01","Unit Usaha Syariah",40351,0,0,39834,0,"Unit Usaha Syariah","","","",""],
+      ["Sep 2025","2025-09-01","Unit Usaha Syariah",44074,0,0,40351,0,"Unit Usaha Syariah","","","",""],
+      ["Okt 2025","2025-10-01","Unit Usaha Syariah",47016,0,0,44074,0,"Unit Usaha Syariah","","","",""],
+      ["Nov 2025","2025-11-01","Unit Usaha Syariah",48701,0,0,47016,0,"Unit Usaha Syariah","","","",""],
+      ["Des 2025","2025-12-01","Unit Usaha Syariah",59489,0,0,48701,0,"Unit Usaha Syariah","","","",""],
+      ["Jan 2026","2026-01-01","Unit Usaha Syariah",-352,0,59489,59489,3309,"Unit Usaha Syariah","-104,53%","-100,59%","0,00%","-10,65%"],
+      ["Feb 2026","2026-02-01","Unit Usaha Syariah",8356,0,59489,-352,8321,"Unit Usaha Syariah","-39,57%","-85,95%","-2470,37%","100,41%"],
+      ["Mar 2026","2026-03-01","Unit Usaha Syariah",12018,0,59489,8356,11880,"Unit Usaha Syariah","-39,60%","-79,80%","43,83%","101,16%"],
+      ["Apr 2026","2026-04-01","Unit Usaha Syariah",15723,0,59489,12018,15274,"Unit Usaha Syariah","37,64%","-73,57%","30,82%","102,94%"],
+      ["Mei 2026","2026-05-01","Unit Usaha Syariah",17368,0,59489,15723,19616,"Unit Usaha Syariah","-4,21%","-70,81%","10,46%","88,54%"],
+      ["Jun 2026","2026-06-01","Unit Usaha Syariah",24534,0,59489,17368,19900,"Unit Usaha Syariah","-28,99%","-58,76%","41,26%","123,29%"],
+      ["Jul 2026","2026-07-01","Unit Usaha Syariah",34569,39834,59489,24534,23558,"Unit Usaha Syariah","-13,22%","-41,89%","40,90%","146,74%"],
+      ["Agt 2026","2026-08-01","Unit Usaha Syariah",40837,40351,59489,34569,27514,"Unit Usaha Syariah","1,21%","-31,35%","18,13%","148,42%"],
+      ["Sept 2026","2026-09-01","Unit Usaha Syariah",52338,44074,59489,40837,31712,"Unit Usaha Syariah","18,75%","-12,02%","28,16%","165,04%"]
+    ];
+
+    const DAFTAR_Zonasi_BJM = ["Zonasi KCS Banjarmasin", "Zonasi KCS Batulicin", "Zonasi KCPS Banjarbaru Q Mall", "Zonasi KCPS Gatot Subroto", "Zonasi KCPS Handil Bakti", "Zonasi KCPS Martapura", "Zonasi KCPS Pelaihari"];
+    const DAFTAR_Zonasi_KDG = ["Zonasi KCS Kandangan", "Zonasi KCPS Amuntai", "Zonasi KCPS Paringin", "Zonasi KCPS Barabai", "Zonasi KCPS Tanjung", "Zonasi KCPS Rantau"];
+    const ENTITAS_KONSOLIDASI = ["Unit Usaha Syariah", "UUS KP", "KCS Banjarmasin Konsolidasi", "KCS Kandangan Konsolidasi"];
+
+    let currentViewMode = 'HIGHLIGHT'; // 'HIGHLIGHT', 'HL_ASET', 'DETAIL_ASET'
+    let activeMenuId = 'highlight';
+    let activeSubItemId = null;
+    let activeMetricName = 'Aset';
+    let activeSheetName = 'Aset 1';
+
+    let datasetAktif = [], datasetAset = [], datasetLaba = [];
+    let highlightChartInstance = null;
+    let countdownInterval = null, autoSyncInterval = null;
+
+    const BULAN_MAP = {
+      'jan': '01', 'feb': '02', 'mar': '03', 'apr': '04', 'mei': '05', 'may': '05',
+      'jun': '06', 'jul': '07', 'agt': '08', 'agu': '08', 'aug': '08',
+      'sep': '09', 'sept': '09', 'okt': '10', 'oct': '10', 'nov': '11', 'des': '12', 'dec': '12'
+    };
+
+    function normalisasiPeriodeDate(periodeStr, periodeDateStr) {
+      if (periodeDateStr && /^\d{4}-\d{2}-\d{2}/.test(periodeDateStr.toString().trim())) {
+        return periodeDateStr.toString().trim().substring(0, 10);
+      }
+      if (periodeStr) {
+        const parts = periodeStr.toString().trim().split(/\s+/);
+        if (parts.length >= 2) {
+          const blnKey = parts[0].toLowerCase().substring(0, 4);
+          const blnKey3 = parts[0].toLowerCase().substring(0, 3);
+          const mm = BULAN_MAP[blnKey] || BULAN_MAP[blnKey3] || '01';
+          const yyyy = parts[1].replace(/[^0-9]/g, '');
+          if (yyyy.length === 4) return `${yyyy}-${mm}-01`;
+        }
+      }
+      return periodeDateStr || '2026-01-01';
+    }
+
+    function mapRawArrayKeDataset(rawArr) {
+      return rawArr.map(r => ({
+        Periode: r[0],
+        PeriodeDate: normalisasiPeriodeDate(r[0], r[1]),
+        UnitKerja: r[2],
+        Nilai: Number(r[3] || 0),
+        YearBefore: Number(r[4] || 0),
+        DateBefore: Number(r[5] || 0),
+        MonthBefore: Number(r[6] || 0),
+        Target: Number(r[7] || 0),
+        Kelompok: r[8],
+        YoY: r[9],
+        Ytd: r[10],
+        Mtm: r[11],
+        RBBC: r[12]
+      }));
+    }
+
+    function muatDatasetCadangan() {
+      datasetAset = mapRawArrayKeDataset(RAW_ASET_1);
+      datasetLaba = mapRawArrayKeDataset(RAW_LABA_1);
+      datasetAktif = datasetAset;
+    }
+
+    function parseSheetRowsKeDataset(rows) {
+      if (!rows || !rows.length) return [];
+      const stdCols = ['periode', 'periode date', 'unit kerja', 'year before', 'date before', 'month before', 'target', 'kelompok unit kerja', 'yoy', 'ytd', 'mtm', 'rbb/c', 'tahun', 'bulan', 'periode sort'];
+      return rows.map(r => {
+        const keys = Object.keys(r);
+        let metricKey = keys.find(k => !stdCols.includes(k.toLowerCase().trim())) || keys[3] || 'Aset';
+        const per = (r['Periode'] || '').toString().trim();
+        const perDate = normalisasiPeriodeDate(per, r['Periode Date']);
+        return {
+          Periode: per,
+          PeriodeDate: perDate,
+          UnitKerja: (r['Unit Kerja'] || '').toString().trim(),
+          Nilai: parseAngka(r[metricKey]),
+          YearBefore: parseAngka(r['Year Before']),
+          DateBefore: parseAngka(r['Date Before']),
+          MonthBefore: parseAngka(r['Month Before']),
+          Target: parseAngka(r['Target']),
+          Kelompok: (r['Kelompok Unit Kerja'] || '').toString().trim(),
+          YoY: r['YoY'] || r['Yoy'] || '',
+          Ytd: r['Ytd'] || '',
+          Mtm: r['Mtm'] || '',
+          RBBC: r['RBB/C'] || ''
+        };
+      });
+    }
+
+    function parseAngka(val) {
+      if (typeof val === 'number') return val;
+      if (!val) return 0;
+      let str = val.toString().trim();
+      if (!str || str === 'NaN' || str === '-') return 0;
+      if (str.includes('.') && str.includes(',')) {
+        str = str.replace(/\./g, '').replace(',', '.');
+      } else if (str.split('.').length > 2) {
+        str = str.replace(/\./g, '');
+      } else if (str.includes(',')) {
+        str = str.replace(',', '.');
+      }
+      let clean = str.replace(/[^0-9.-]/g, '');
+      return parseFloat(clean) || 0;
+    }
+
+    function formatRupiah(angka) {
+      let num = Number(angka || 0);
+      return 'Rp ' + num.toLocaleString('id-ID');
+    }
+
+    function formatPersen(strVal, numAktual, numPembanding, isTarget) {
+      if (strVal && strVal.toString().trim() !== '' && strVal !== 'NaN') {
+        return strVal.toString();
+      }
+      if (!numPembanding || numPembanding === 0) return '0,00%';
+      let pct = isTarget ? ((numAktual / numPembanding) * 100) : (((numAktual - numPembanding) / numPembanding) * 100);
+      return pct.toFixed(2).replace('.', ',') + '%';
+    }
+
+    function toggleSidebar() {
+      const sb = document.getElementById('sidebar');
+      sb.classList.toggle('collapsed');
+      setTimeout(() => {
+        if (highlightChartInstance) highlightChartInstance.resize();
+        if (typeof resizeSemuaChartHlAset === 'function') resizeSemuaChartHlAset();
+        if (typeof trendChartInstance !== 'undefined' && trendChartInstance) trendChartInstance.resize();
+        if (typeof targetChartInstance !== 'undefined' && targetChartInstance) targetChartInstance.resize();
+        if (typeof leaderboardChartInstance !== 'undefined' && leaderboardChartInstance) leaderboardChartInstance.resize();
+      }, 360);
+    }
+
+    function bangunSidebar() {
+      const container = document.getElementById('sidebarMenuContainer');
+      container.innerHTML = '';
+
+      MENU_CONFIG.forEach(menu => {
+        const isActive = menu.id === activeMenuId;
+        const li = document.createElement('li');
+        li.className = 'nav-item' + (isActive ? ' active open-menu' : '');
+        li.id = 'nav-' + menu.id;
+        li.title = menu.title;
+        li.innerHTML = `
+          <div class="nav-item-left">
+            <i data-lucide="${menu.icon}" class="nav-icon"></i>
+            <span class="nav-label">${menu.title}</span>
+          </div>
+          <i data-lucide="chevron-down" class="chevron-icon"></i>
+        `;
+        li.onclick = () => klikMenuUtama(menu.id);
+        container.appendChild(li);
+
+        const ulSub = document.createElement('ul');
+        ulSub.className = 'submenu-list' + (isActive ? ' open' : '');
+        ulSub.id = 'sub-' + menu.id;
+
+        menu.items.forEach(sub => {
+          const liSub = document.createElement('li');
+          liSub.className = 'submenu-item' + (activeSubItemId === sub.id ? ' active-sub' : '');
+          liSub.id = 'subitem-' + sub.id;
+          liSub.innerHTML = `
+            <span class="submenu-dot"></span>
+            <span>${sub.name}</span>
+          `;
+          liSub.onclick = (e) => {
+            e.stopPropagation();
+            if (sub.mode === 'HL_ASET') {
+              bukaHalamanHlAset();
+            } else if (menu.id === 'highlight' && sub.targetMenu) {
+              navigasiKeHalaman(sub.targetMenu, sub.targetSub);
+            } else {
+              pilihSubMenu(menu.id, sub);
+            }
+          };
+          ulSub.appendChild(liSub);
+        });
+
+        container.appendChild(ulSub);
+      });
+
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    function bukaHalamanHighlight() {
+      currentViewMode = 'HIGHLIGHT';
+      activeMenuId = 'highlight';
+      activeSubItemId = null;
+      activeSheetName = 'Aset 1';
+      activeMetricName = 'Aset';
+
+      document.getElementById('page-highlight-home').style.display = 'flex';
+      document.getElementById('page-hlaset').style.display = 'none';
+      document.getElementById('page-aset-detail').style.display = 'none';
+      document.getElementById('breadcrumb').textContent = 'HIGHLIGHT KINERJA / RINGKASAN EKSEKUTIF';
+
+      perbaruiHighlightSidebar();
+      sinkronkanDataSheet(true);
+    }
+
+    function bukaHalamanHlAset() {
+      currentViewMode = 'HL_ASET';
+      activeMenuId = 'highlight';
+      activeSubItemId = 'hl_aset_laba';
+
+      document.getElementById('page-highlight-home').style.display = 'none';
+      document.getElementById('page-hlaset').style.display = 'flex';
+      document.getElementById('page-aset-detail').style.display = 'none';
+      document.getElementById('breadcrumb').textContent = 'HIGHLIGHT KINERJA / ASET & LABA (HLASET)';
+
+      perbaruiHighlightSidebar();
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+      sinkronkanDataSheet(true);
+    }
+
+    function navigasiKeHalaman(menuId, subId) {
+      const menuObj = MENU_CONFIG.find(m => m.id === menuId);
+      if (!menuObj) return;
+      const subObj = menuObj.items.find(s => s.id === subId) || menuObj.items[0];
+      pilihSubMenu(menuId, subObj);
+    }
+
+    function klikMenuUtama(menuId) {
+      const sb = document.getElementById('sidebar');
+      if (sb.classList.contains('collapsed')) sb.classList.remove('collapsed');
+
+      if (menuId === 'highlight') {
+        bukaHalamanHighlight();
+        return;
+      }
+
+      const subList = document.getElementById('sub-' + menuId);
+      const navEl = document.getElementById('nav-' + menuId);
+
+      if (activeMenuId === menuId && currentViewMode === 'DETAIL_ASET') {
+        subList.classList.toggle('open');
+        navEl.classList.toggle('open-menu');
+        return;
+      }
+
+      const menuObj = MENU_CONFIG.find(m => m.id === menuId);
+      if (menuObj && menuObj.items.length > 0) {
+        pilihSubMenu(menuId, menuObj.items[0]);
+      }
+    }
+
+    function pilihSubMenu(menuId, subObj) {
+      currentViewMode = 'DETAIL_ASET';
+      activeMenuId = menuId;
+      activeSubItemId = subObj.id;
+      activeMetricName = subObj.metric;
+      activeSheetName = subObj.sheet;
+
+      document.getElementById('page-highlight-home').style.display = 'none';
+      document.getElementById('page-hlaset').style.display = 'none';
+      document.getElementById('page-aset-detail').style.display = 'flex';
+
+      perbaruiHighlightSidebar();
+
+      const menuTitle = MENU_CONFIG.find(m => m.id === menuId).title;
+      document.getElementById('breadcrumb').textContent = `${menuTitle} / ${subObj.name} (SHEET: ${subObj.sheet})`;
+      document.getElementById('labelKategoriAktif').textContent = `${menuTitle.toUpperCase()} — ${subObj.name.toUpperCase()}`;
+      document.getElementById('labelNomMetric').textContent = `Nom ${subObj.metric}`;
+      document.getElementById('titleTrendChart').textContent = `Trend ${subObj.metric}`;
+
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+      sinkronkanDataSheet(true);
+    }
+
+    function perbaruiHighlightSidebar() {
+      MENU_CONFIG.forEach(m => {
+        const navEl = document.getElementById('nav-' + m.id);
+        const subUl = document.getElementById('sub-' + m.id);
+        if (!navEl || !subUl) return;
+
+        if (m.id === activeMenuId) {
+          navEl.classList.add('active', 'open-menu');
+          subUl.classList.add('open');
+        } else {
+          navEl.classList.remove('active', 'open-menu');
+          subUl.classList.remove('open');
+        }
+
+        m.items.forEach(s => {
+          const el = document.getElementById('subitem-' + s.id);
+          if (el) el.classList.toggle('active-sub', s.id === activeSubItemId);
+        });
+      });
+    }
+
+    function sinkronkanDataSheet(pertahankanPilihanTanggal = false) {
+      const btnSync = document.getElementById('btnSync');
+      const badge = document.getElementById('syncBadge');
+      if (btnSync) btnSync.classList.add('spinning');
+      if (badge) {
+        badge.textContent = 'Menyinkronkan Sheet...';
+        badge.classList.remove('fallback');
+      }
+
+      const tanggalSebelumnya = document.getElementById('filterTanggal') ? document.getElementById('filterTanggal').value : '';
+      const unitSebelumnya = document.getElementById('filterUnitKerja') ? document.getElementById('filterUnitKerja').value : '';
+
+      if (typeof google !== 'undefined' && google.script) {
+        if (currentViewMode === 'HL_ASET') {
+          google.script.run
+            .withSuccessHandler(function(bundle) {
+              if (btnSync) btnSync.classList.remove('spinning');
+              if (bundle && bundle.aset && bundle.aset.success) {
+                datasetAset = datasetAktif = parseSheetRowsKeDataset(bundle.aset.rows);
+              } else if (!datasetAset.length) {
+                muatDatasetCadangan();
+              }
+
+              if (bundle && bundle.laba && bundle.laba.success) {
+                datasetLaba = parseSheetRowsKeDataset(bundle.laba.rows);
+              } else if (!datasetLaba.length) {
+                datasetLaba = mapRawArrayKeDataset(RAW_LABA_1);
+              }
+
+              if (badge && bundle && bundle.aset && bundle.aset.success) {
+                badge.textContent = `Live Sheet Aset 1 & Laba 1 (${bundle.aset.rowCount} baris • ${bundle.aset.lastUpdated})`;
+                badge.classList.remove('fallback');
+              }
+
+              perbaruiDropdownFilterDinamis(pertahankanPilihanTanggal ? tanggalSebelumnya : '', unitSebelumnya);
+              terapkanFilter();
+            })
+            .withFailureHandler(function() {
+              if (btnSync) btnSync.classList.remove('spinning');
+              if (!datasetAset.length) muatDatasetCadangan();
+              perbaruiDropdownFilterDinamis(tanggalSebelumnya, unitSebelumnya);
+              terapkanFilter();
+            })
+            .getHlAsetLabaBundle();
+          return;
+        }
+
+        google.script.run
+          .withSuccessHandler(function(res) {
+            if (btnSync) btnSync.classList.remove('spinning');
+
+            if (res && res.success && res.rows && res.rows.length > 0) {
+              datasetAktif = parseSheetRowsKeDataset(res.rows);
+              if (activeSheetName === 'Aset 1') datasetAset = datasetAktif;
+
+              // if (badge) {
+              //   badge.textContent = `Live Sheet "${res.sheetActualName}" (${res.rowCount} baris • ${res.lastUpdated})`;
+              //   badge.classList.remove('fallback');
+              // }
+
+              perbaruiDropdownFilterDinamis(pertahankanPilihanTanggal ? tanggalSebelumnya : '', unitSebelumnya);
+              terapkanFilter();
+            } else {
+              if (datasetAktif.length === 0) muatDatasetCadangan();
+              if (badge) {
+                badge.textContent = (res && res.message) ? res.message : 'Mode Pratinjau';
+                badge.classList.add('fallback');
+              }
+              perbaruiDropdownFilterDinamis(tanggalSebelumnya, unitSebelumnya);
+              terapkanFilter();
+            }
+          })
+          .withFailureHandler(function() {
+            if (btnSync) btnSync.classList.remove('spinning');
+            if (datasetAktif.length === 0) muatDatasetCadangan();
+            if (badge) {
+              badge.textContent = 'Gagal memuat Sheet';
+              badge.classList.add('fallback');
+            }
+            perbaruiDropdownFilterDinamis(tanggalSebelumnya, unitSebelumnya);
+            terapkanFilter();
+          })
+          .getSheetData(activeSheetName);
+      } else {
+        setTimeout(() => {
+          if (btnSync) btnSync.classList.remove('spinning');
+          if (datasetAktif.length === 0) muatDatasetCadangan();
+          if (badge) {
+            badge.textContent = 'Mode Lokal (Contoh Data)';
+            badge.classList.add('fallback');
+          }
+          perbaruiDropdownFilterDinamis(tanggalSebelumnya, unitSebelumnya);
+          terapkanFilter();
+        }, 250);
+      }
+    }
+
+    function perbaruiDropdownFilterDinamis(tanggalPilihanLama, unitPilihanLama) {
+      const mapPeriode = new Map();
+      datasetAktif.forEach(d => {
+        if (d.Periode && !mapPeriode.has(d.Periode)) {
+          mapPeriode.set(d.Periode, d.PeriodeDate);
+        }
+      });
+
+      const listPeriode = Array.from(mapPeriode.entries())
+        .map(([Periode, PeriodeDate]) => ({ Periode, PeriodeDate }))
+        .sort((a, b) => a.PeriodeDate.localeCompare(b.PeriodeDate));
+
+      const selTgl = document.getElementById('filterTanggal');
+      selTgl.innerHTML = '';
+
+      const reversedPeriode = [...listPeriode].reverse();
+      reversedPeriode.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.Periode;
+        opt.textContent = p.Periode;
+        selTgl.appendChild(opt);
+      });
+
+      if (tanggalPilihanLama && reversedPeriode.some(p => p.Periode === tanggalPilihanLama)) {
+        selTgl.value = tanggalPilihanLama;
+      } else if (reversedPeriode.length > 0) {
+        selTgl.value = reversedPeriode[0].Periode;
+      }
+
+      onKonsolidasiChange(false, unitPilihanLama);
+    }
+
+    function onKonsolidasiChange(jalankanRender = true, unitPilihanLama = '') {
+      const konsol = document.getElementById('filterKonsolidasi').value;
+      const selUK = document.getElementById('filterUnitKerja');
+      selUK.innerHTML = '';
+
+      const unitUnikSheet = [...new Set(datasetAktif.map(d => d.UnitKerja))].filter(Boolean);
+
+      if (konsol === 'Unit Usaha Syariah') {
+        tambahOpsi(selUK, 'Semua Unit Kerja (Konsolidasi UUS)', 'Unit Usaha Syariah');
+        const listCabang = unitUnikSheet.filter(u => u !== 'Unit Usaha Syariah' && !u.includes('Konsolidasi'));
+        (listCabang.length ? listCabang : [...DAFTAR_Zonasi_BJM, ...DAFTAR_Zonasi_KDG, 'UUS KP']).forEach(uk => tambahOpsi(selUK, uk, uk));
+      } else if (konsol === 'KCS Banjarmasin Konsolidasi') {
+        tambahOpsi(selUK, 'Semua Zonasi KCS Banjarmasin', 'KCS Banjarmasin Konsolidasi');
+        const listBjm = [...new Set(datasetAktif.filter(d => d.Kelompok === 'KCS Banjarmasin Konsolidasi' && d.UnitKerja !== 'KCS Banjarmasin Konsolidasi').map(d => d.UnitKerja))];
+        (listBjm.length ? listBjm : DAFTAR_Zonasi_BJM).forEach(uk => tambahOpsi(selUK, uk, uk));
+      } else if (konsol === 'KCS Kandangan Konsolidasi') {
+        tambahOpsi(selUK, 'Semua Zonasi KCS Kandangan', 'KCS Kandangan Konsolidasi');
+        const listKdg = [...new Set(datasetAktif.filter(d => d.Kelompok === 'KCS Kandangan Konsolidasi' && d.UnitKerja !== 'KCS Kandangan Konsolidasi').map(d => d.UnitKerja))];
+        (listKdg.length ? listKdg : DAFTAR_Zonasi_KDG).forEach(uk => tambahOpsi(selUK, uk, uk));
+      } else if (konsol === 'UUS KP') {
+        tambahOpsi(selUK, 'UUS KP', 'UUS KP');
+      }
+
+      if (unitPilihanLama && Array.from(selUK.options).some(o => o.value === unitPilihanLama)) {
+        selUK.value = unitPilihanLama;
+      }
+
+      if (jalankanRender) terapkanFilter();
+    }
+
+    function tambahOpsi(selectEl, label, val) {
+      const opt = document.createElement('option');
+      opt.value = val;
+      opt.textContent = label;
+      selectEl.appendChild(opt);
+    }
+
+    function terapkanFilter() {
+      const periodeTerpilih = document.getElementById('filterTanggal').value;
+      const seriesTerpilih = document.getElementById('filterSeries').value;
+      const konsolTerpilih = document.getElementById('filterKonsolidasi').value;
+      const entitasTerpilih = document.getElementById('filterUnitKerja').value;
+
+      const mapPeriode = new Map();
+      datasetAktif.forEach(d => {
+        if (d.Periode && !mapPeriode.has(d.Periode)) {
+          mapPeriode.set(d.Periode, d.PeriodeDate);
+        }
+      });
+
+      const semuaPeriode = Array.from(mapPeriode.entries())
+        .map(([Periode, PeriodeDate]) => ({ Periode, PeriodeDate }))
+        .sort((a, b) => a.PeriodeDate.localeCompare(b.PeriodeDate));
+
+      const idxBatas = semuaPeriode.findIndex(p => p.Periode === periodeTerpilih);
+      const periodeSampaiTanggal = idxBatas >= 0 ? semuaPeriode.slice(0, idxBatas + 1) : semuaPeriode;
+
+      let periodeSeries = [];
+      if (seriesTerpilih === 'Bulanan') {
+        periodeSeries = periodeSampaiTanggal;
+      } else if (seriesTerpilih === 'Triwulanan') {
+        periodeSeries = periodeSampaiTanggal.filter(p => {
+          const bln = p.PeriodeDate.split('-')[1];
+          return ['03', '06', '09', '12'].includes(bln) || p.Periode === periodeTerpilih;
+        });
+      } else if (seriesTerpilih === 'Tahunan') {
+        periodeSeries = periodeSampaiTanggal.filter(p => {
+          const bln = p.PeriodeDate.split('-')[1];
+          return bln === '12' || p.Periode === periodeTerpilih;
+        });
+      }
+
+      if (currentViewMode === 'HIGHLIGHT') {
+        renderHalamanHighlightHome(periodeTerpilih, seriesTerpilih, entitasTerpilih, periodeSeries);
+      } else if (currentViewMode === 'HL_ASET') {
+        if (typeof renderHalamanHlAsetLaba === 'function') {
+          renderHalamanHlAsetLaba(periodeTerpilih, seriesTerpilih, konsolTerpilih, entitasTerpilih, periodeSeries);
+        }
+      } else {
+        if (typeof renderHalamanAsetDetail === 'function') {
+          renderHalamanAsetDetail(periodeTerpilih, seriesTerpilih, konsolTerpilih, entitasTerpilih, semuaPeriode, periodeSeries);
+        }
+      }
+    }
+
+    function renderHalamanHighlightHome(periodeTerpilih, seriesTerpilih, entitasTerpilih, periodeSeries) {
+      const rowAset = datasetAktif.find(d => d.Periode === periodeTerpilih && d.UnitKerja === entitasTerpilih);
+
+      document.getElementById('hl-sub-aset').textContent = `${entitasTerpilih} (${periodeTerpilih})`;
+      document.getElementById('hl-sub-dpk').textContent = `${entitasTerpilih} (${periodeTerpilih})`;
+      document.getElementById('hl-sub-pby').textContent = `${entitasTerpilih} (${periodeTerpilih})`;
+
+      if (rowAset) {
+        document.getElementById('hl-val-aset').textContent = formatRupiah(rowAset.Nilai);
+        document.getElementById('hl-rbb-aset').textContent = formatPersen(rowAset.RBBC, rowAset.Nilai, rowAset.Target, true);
+        document.getElementById('hl-yoy-aset').textContent = `Pertumbuhan YoY: ${formatPersen(rowAset.YoY, rowAset.Nilai, rowAset.YearBefore, false)}`;
+      } else {
+        document.getElementById('hl-val-aset').textContent = 'Rp 0';
+        document.getElementById('hl-rbb-aset').textContent = '0,00%';
+        document.getElementById('hl-yoy-aset').textContent = 'YoY: 0,00%';
+      }
+
+      const labels = periodeSeries.map(p => p.Periode);
+      const dataAktual = periodeSeries.map(p => {
+        const f = datasetAktif.find(d => d.Periode === p.Periode && d.UnitKerja === entitasTerpilih);
+        return f ? f.Nilai : 0;
+      });
+      const dataTarget = periodeSeries.map(p => {
+        const f = datasetAktif.find(d => d.Periode === p.Periode && d.UnitKerja === entitasTerpilih);
+        return f ? f.Target : 0;
+      });
+
+      document.getElementById('badgeHighlightSeries').textContent = `Series: ${seriesTerpilih} (${entitasTerpilih})`;
+
+      const ctx = document.getElementById('highlightOverviewChart').getContext('2d');
+      if (highlightChartInstance) highlightChartInstance.destroy();
+
+      highlightChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Aktual Aset',
+              data: dataAktual,
+              borderColor: '#0a7340',
+              backgroundColor: 'rgba(10, 115, 64, 0.12)',
+              borderWidth: 3,
+              fill: true,
+              tension: 0.3
+            },
+            {
+              label: 'Target RBB/C',
+              data: dataTarget,
+              borderColor: '#ea8010',
+              borderDash: [6, 4],
+              borderWidth: 2.5,
+              fill: false,
+              tension: 0.3
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'top' },
+            tooltip: {
+              callbacks: {
+                label: (c) => ` ${c.dataset.label}: ${formatRupiah(c.parsed.y)}`
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: false,
+              ticks: {
+                callback: (v) => 'Rp ' + Number(v).toLocaleString('id-ID')
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function prosesLogin() {
+      const user = document.getElementById('username').value.trim();
+      const pass = document.getElementById('password').value.trim();
+      const btn = document.getElementById('btnLogin');
+      const err = document.getElementById('loginError');
+
+      btn.textContent = 'Memeriksa...';
+      btn.disabled = true;
+      err.style.display = 'none';
+
+      if (typeof google !== 'undefined' && google.script) {
+        google.script.run
+          .withSuccessHandler(function(res) {
+            btn.textContent = 'Masuk';
+            btn.disabled = false;
+            if (res.success) {
+              bukaDashboard(res);
+            } else {
+              err.textContent = res.message;
+              err.style.display = 'block';
+            }
+          })
+          .checkLogin(user, pass);
+      } else {
+        setTimeout(() => {
+          btn.textContent = 'Masuk';
+          btn.disabled = false;
+          if (user === 'admin' && pass === '123') {
+            bukaDashboard({ nama: 'DIVISI USAHA SYARIAH', role: 'User', inisial: 'D' });
+          } else {
+            err.style.display = 'block';
+          }
+        }, 300);
+      }
+    }
+
+    function bukaDashboard(userData) {
+      document.getElementById('userName').textContent = userData.nama;
+      document.getElementById('userRole').textContent = userData.role;
+      document.getElementById('userInisial').textContent = userData.inisial;
+
+      document.getElementById('login-page').style.display = 'none';
+      document.getElementById('dashboard-page').style.display = 'block';
+
+      muatDatasetCadangan();
+      bangunSidebar();
+      bukaHalamanHighlight();
+      mulaiTimerSesi(3597);
+
+      clearInterval(autoSyncInterval);
+      autoSyncInterval = setInterval(() => {
+        sinkronkanDataSheet(true);
+      }, 60000);
+    }
+
+    function prosesLogout() {
+      clearInterval(countdownInterval);
+      clearInterval(autoSyncInterval);
+      document.getElementById('dashboard-page').style.display = 'none';
+      document.getElementById('login-page').style.display = 'flex';
+      document.getElementById('password').value = '';
+    }
+
+    function mulaiTimerSesi(durasiDetik) {
+      clearInterval(countdownInterval);
+      let sisa = durasiDetik;
+      const el = document.getElementById('timer');
+
+      countdownInterval = setInterval(() => {
+        let m = Math.floor(sisa / 60);
+        let d = sisa % 60;
+        el.textContent = (m < 10 ? '0' + m : m) + ':' + (d < 10 ? '0' + d : d);
+        if (--sisa < 0) {
+          clearInterval(countdownInterval);
+          prosesLogout();
+        }
+      }, 1000);
+    }
+  </script>
+
+  <!-- ================= LOAD MODUL HALAMAN TERPISAH ================= -->
+  <?!= include('hlaset'); ?>
+  <?!= include('aset'); ?>
+</body>
+</html>

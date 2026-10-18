@@ -1,0 +1,407 @@
+<!-- ================= FILE: aset.html ================= -->
+<!-- Komponen Halaman Detail (Layout Tunggal: 5 KPI, Trend Line, Target Bar, Leaderboard, Tabel) -->
+
+<div id="page-aset-detail" style="display: none; flex-direction: column; gap: 16px;">
+
+  <!-- TOMBOL KEMBALI KE HIGHLIGHT KINERJA -->
+  <div style="display: flex; justify-content: space-between; align-items: center;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <span class="chart-badge" id="labelKategoriAktif" style="font-size: 12px; padding: 6px 14px;">DETAIL INDIKATOR: ASET</span>
+    </div>
+    <button class="btn-back-highlight" onclick="bukaHalamanHighlight()">
+      <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i>
+      <span>Kembali ke Highlight Kinerja</span>
+    </button>
+  </div>
+
+  <!-- BARIS 1: 5 KARTU KPI (NOM ASET, YOY, YTD, MTM, RBB/C) -->
+  <div class="kpi-grid-5">
+    <div class="kpi-box bg-main">
+      <div class="kpi-head">
+        <span id="labelNomMetric">Nom Aset</span>
+        <i data-lucide="wallet" style="width:16px;height:16px;"></i>
+      </div>
+      <div class="kpi-main-val" id="valNomAset">Rp 0</div>
+      <div class="kpi-sub-caption" id="subNomAset">Posisi: -</div>
+    </div>
+
+    <div class="kpi-box bg-yoy">
+      <div class="kpi-head">
+        <span>YoY (Year on Year)</span>
+        <i data-lucide="trending-up" style="width:16px;height:16px;"></i>
+      </div>
+      <div class="kpi-main-val" id="valYoY">0,00%</div>
+      <div class="kpi-sub-caption" id="subYoY">Tahun lalu: Rp 0</div>
+    </div>
+
+    <div class="kpi-box bg-ytd">
+      <div class="kpi-head">
+        <span>Ytd (Year to Date)</span>
+        <i data-lucide="calendar-check" style="width:16px;height:16px;"></i>
+      </div>
+      <div class="kpi-main-val" id="valYtd">0,00%</div>
+      <div class="kpi-sub-caption" id="subYtd">Des Tahun Lalu: Rp 0</div>
+    </div>
+
+    <div class="kpi-box bg-mtm">
+      <div class="kpi-head">
+        <span>Mtm (Month to Month)</span>
+        <i data-lucide="activity" style="width:16px;height:16px;"></i>
+      </div>
+      <div class="kpi-main-val" id="valMtm">0,00%</div>
+      <div class="kpi-sub-caption" id="subMtm">Bulan lalu: Rp 0</div>
+    </div>
+
+    <div class="kpi-box bg-rbb">
+      <div class="kpi-head">
+        <span>Capaian RBB/C</span>
+        <i data-lucide="target" style="width:16px;height:16px;"></i>
+      </div>
+      <div class="kpi-main-val" id="valRbb">0,00%</div>
+      <div class="kpi-sub-caption" id="subRbb">Target: Rp 0</div>
+    </div>
+  </div>
+
+  <!-- BARIS 2: TREND ASET (LINE CHART PENUH) -->
+  <div class="chart-card">
+    <div class="chart-card-header">
+      <h3>
+        <i data-lucide="line-chart" style="width:18px;height:18px;color:var(--primary-green);"></i>
+        <span id="titleTrendChart">Trend Aset</span>
+      </h3>
+      <span class="chart-badge" id="badgeTrendSeries">Series: Bulanan</span>
+    </div>
+    <div class="canvas-line-wrap">
+      <canvas id="trendLineChart"></canvas>
+    </div>
+  </div>
+
+  <!-- BARIS 3: REALISASI TERHADAP TARGET & LEADERBOARD UNIT KERJA -->
+  <div class="middle-charts-grid">
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <h3>
+          <i data-lucide="bar-chart-3" style="width:18px;height:18px;color:var(--primary-green);"></i>
+          <span>Realisasi terhadap Target</span>
+        </h3>
+        <span class="chart-badge" id="badgeTargetSeries">Aktual vs RBB/C</span>
+      </div>
+      <div class="canvas-mid-wrap">
+        <canvas id="targetBarChart"></canvas>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <h3>
+          <i data-lucide="award" style="width:18px;height:18px;color:var(--primary-green);"></i>
+          <span>Leaderboard Realisasi Unit Kerja</span>
+        </h3>
+        <span class="chart-badge" id="badgeLeaderboard">Urutan Unit Kerja</span>
+      </div>
+      <div class="canvas-mid-wrap">
+        <canvas id="leaderboardChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- BARIS 4: TABEL REALISASI PER KONSOLIDASI / PER UNIT KERJA -->
+  <div class="table-card">
+    <div class="chart-card-header">
+      <h3>
+        <i data-lucide="table" style="width:18px;height:18px;color:var(--primary-green);"></i>
+        <span id="titleTable">Tabel Realisasi per Konsolidasi / per Unit Kerja</span>
+      </h3>
+      <span class="chart-badge" id="badgeTablePeriode">Periode: -</span>
+    </div>
+    <div class="table-responsive">
+      <table class="realisasi-table">
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>Unit Kerja</th>
+            <th>Kelompok Konsolidasi</th>
+            <th class="num-col">Data Aktual (Rp)</th>
+            <th class="num-col">Target RBB/C (Rp)</th>
+            <th class="num-col">YoY</th>
+            <th class="num-col">Ytd</th>
+            <th class="num-col">Mtm</th>
+            <th class="num-col">% RBB/C</th>
+          </tr>
+        </thead>
+        <tbody id="tableBodyRealisasi"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  /**
+   * LOGIKA KHUSUS HALAMAN DETAIL (aset.html)
+   */
+  let trendChartInstance = null;
+  let targetChartInstance = null;
+  let leaderboardChartInstance = null;
+
+  function renderHalamanAsetDetail(periodeTerpilih, seriesTerpilih, konsolTerpilih, entitasTerpilih, semuaPeriode, periodeSeries) {
+    // 1. Cari baris untuk Kartu KPI
+    const rowKPI = datasetAktif.find(
+      d => d.Periode === periodeTerpilih && d.UnitKerja === entitasTerpilih
+    );
+    perbaruiKartuKPIAset(rowKPI, periodeTerpilih, entitasTerpilih);
+
+    // 2. Siapkan data Series untuk Line Chart & Bar Chart
+    const labelsSeries = periodeSeries.map(p => p.Periode);
+    const dataAktualSeries = periodeSeries.map(p => {
+      const found = datasetAktif.find(d => d.Periode === p.Periode && d.UnitKerja === entitasTerpilih);
+      return found ? found.Nilai : 0;
+    });
+    const dataTargetSeries = periodeSeries.map(p => {
+      const found = datasetAktif.find(d => d.Periode === p.Periode && d.UnitKerja === entitasTerpilih);
+      return found ? found.Target : 0;
+    });
+
+    document.getElementById('badgeTrendSeries').textContent = `Series: ${seriesTerpilih} (${entitasTerpilih})`;
+    document.getElementById('badgeTargetSeries').textContent = `Series: ${seriesTerpilih}`;
+
+    renderTrendLineChart(labelsSeries, dataAktualSeries);
+    renderTargetBarChart(labelsSeries, dataAktualSeries, dataTargetSeries);
+
+    // 3. Leaderboard Realisasi Unit Kerja
+    const rowsPadaPeriode = datasetAktif.filter(d => d.Periode === periodeTerpilih);
+    let rowsLeaderboard = [];
+
+    if (konsolTerpilih === 'KCS Banjarmasin Konsolidasi') {
+      rowsLeaderboard = rowsPadaPeriode.filter(d => d.Kelompok === 'KCS Banjarmasin Konsolidasi' && !ENTITAS_KONSOLIDASI.includes(d.UnitKerja));
+    } else if (konsolTerpilih === 'KCS Kandangan Konsolidasi') {
+      rowsLeaderboard = rowsPadaPeriode.filter(d => d.Kelompok === 'KCS Kandangan Konsolidasi' && !ENTITAS_KONSOLIDASI.includes(d.UnitKerja));
+    } else if (konsolTerpilih === 'UUS KP') {
+      rowsLeaderboard = rowsPadaPeriode.filter(d => d.UnitKerja === 'UUS KP');
+    } else {
+      rowsLeaderboard = rowsPadaPeriode.filter(d => !ENTITAS_KONSOLIDASI.includes(d.UnitKerja));
+    }
+
+    const dataLeaderboard = rowsLeaderboard.map(r => ({
+      unit: r.UnitKerja.replace('Zonasi ', ''),
+      unitFull: r.UnitKerja,
+      aktual: r.Nilai,
+      target: r.Target
+    })).sort((a, b) => b.aktual - a.aktual);
+
+    renderLeaderboardChart(dataLeaderboard);
+    renderTabelRealisasi(periodeTerpilih, konsolTerpilih, entitasTerpilih);
+  }
+
+  function perbaruiKartuKPIAset(row, periode, entitas) {
+    if (!row) {
+      document.getElementById('valNomAset').textContent = 'Rp 0';
+      document.getElementById('subNomAset').textContent = `${entitas} (${periode || '-'})`;
+      document.getElementById('valYoY').textContent = '0,00%';
+      document.getElementById('valYtd').textContent = '0,00%';
+      document.getElementById('valMtm').textContent = '0,00%';
+      document.getElementById('valRbb').textContent = '0,00%';
+      return;
+    }
+
+    document.getElementById('valNomAset').textContent = formatRupiah(row.Nilai);
+    document.getElementById('subNomAset').textContent = `${entitas} (${periode})`;
+
+    document.getElementById('valYoY').textContent = formatPersen(row.YoY, row.Nilai, row.YearBefore, false);
+    document.getElementById('subYoY').textContent = row.YearBefore ? `Tahun Lalu: ${formatRupiah(row.YearBefore)}` : 'Data YoY Sheet';
+
+    document.getElementById('valYtd').textContent = formatPersen(row.Ytd, row.Nilai, row.DateBefore, false);
+    document.getElementById('subYtd').textContent = row.DateBefore ? `Des Lalu: ${formatRupiah(row.DateBefore)}` : 'Data Ytd Sheet';
+
+    document.getElementById('valMtm').textContent = formatPersen(row.Mtm, row.Nilai, row.MonthBefore, false);
+    document.getElementById('subMtm').textContent = row.MonthBefore ? `Bulan Lalu: ${formatRupiah(row.MonthBefore)}` : 'Data Mtm Sheet';
+
+    document.getElementById('valRbb').textContent = formatPersen(row.RBBC, row.Nilai, row.Target, true);
+    document.getElementById('subRbb').textContent = `Target RBB/C: ${formatRupiah(row.Target)}`;
+  }
+
+  function renderTrendLineChart(labels, dataAktual) {
+    const ctx = document.getElementById('trendLineChart').getContext('2d');
+    if (trendChartInstance) trendChartInstance.destroy();
+
+    const grad = ctx.createLinearGradient(0, 0, 0, 260);
+    grad.addColorStop(0, 'rgba(10, 115, 64, 0.28)');
+    grad.addColorStop(1, 'rgba(10, 115, 64, 0.0)');
+
+    trendChartInstance = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: `Aktual ${activeMetricName}`,
+          data: dataAktual,
+          borderColor: '#0a7340',
+          backgroundColor: grad,
+          borderWidth: 3,
+          pointBackgroundColor: '#ffffff',
+          pointBorderColor: '#0a7340',
+          pointBorderWidth: 2.5,
+          pointRadius: 4.5,
+          fill: true,
+          tension: 0.32
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => ` ${formatRupiah(ctx.parsed.y)}`
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: false,
+            ticks: {
+              callback: (val) => 'Rp ' + Number(val).toLocaleString('id-ID')
+            }
+          }
+        }
+      }
+    });
+  }
+
+  function renderTargetBarChart(labels, dataAktual, dataTarget) {
+    const ctx = document.getElementById('targetBarChart').getContext('2d');
+    if (targetChartInstance) targetChartInstance.destroy();
+
+    targetChartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Aktual Realisasi',
+            data: dataAktual,
+            backgroundColor: '#0a7340',
+            borderRadius: 6
+          },
+          {
+            label: 'Target RBB/C',
+            data: dataTarget,
+            backgroundColor: '#ea8010',
+            borderRadius: 6
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: 'top' },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => ` ${ctx.dataset.label}: ${formatRupiah(ctx.parsed.y)}`
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: (val) => 'Rp ' + Number(val).toLocaleString('id-ID')
+            }
+          }
+        }
+      }
+    });
+  }
+
+  function renderLeaderboardChart(sortedItems) {
+    const ctx = document.getElementById('leaderboardChart').getContext('2d');
+    if (leaderboardChartInstance) leaderboardChartInstance.destroy();
+
+    leaderboardChartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: sortedItems.map(i => i.unit),
+        datasets: [{
+          label: 'Realisasi Aktual',
+          data: sortedItems.map(i => i.aktual),
+          backgroundColor: '#0b8793',
+          borderRadius: 5
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => ` ${formatRupiah(ctx.parsed.x)}`
+            }
+          }
+        },
+        scales: {
+          x: {
+            beginAtZero: true,
+            ticks: {
+              callback: (val) => Number(val).toLocaleString('id-ID')
+            }
+          },
+          y: {
+            ticks: { font: { size: 11 } }
+          }
+        }
+      }
+    });
+  }
+
+  function badgeGrowthHtml(valStr) {
+    if (!valStr || valStr.toString().trim() === '') {
+      return `<span class="badge-growth badge-neutral">-</span>`;
+    }
+    const isNeg = valStr.toString().includes('-');
+    const cls = isNeg ? 'badge-neg' : 'badge-pos';
+    return `<span class="badge-growth ${cls}">${valStr}</span>`;
+  }
+
+  function renderTabelRealisasi(periode, konsol, entitasTerpilih) {
+    document.getElementById('badgeTablePeriode').textContent = `Periode: ${periode}`;
+    const tbody = document.getElementById('tableBodyRealisasi');
+    tbody.innerHTML = '';
+
+    const rowsPeriode = datasetAktif.filter(d => {
+      if (d.Periode !== periode) return false;
+      if (konsol === 'Unit Usaha Syariah') return true;
+      return d.Kelompok === konsol || d.UnitKerja === konsol;
+    });
+
+    rowsPeriode.forEach((r, idx) => {
+      const tr = document.createElement('tr');
+      const isSummaryRow = ENTITAS_KONSOLIDASI.includes(r.UnitKerja);
+
+      if (isSummaryRow || r.UnitKerja === entitasTerpilih) {
+        tr.className = 'row-highlight';
+      }
+
+      const yoyTxt = formatPersen(r.YoY, r.Nilai, r.YearBefore, false);
+      const ytdTxt = formatPersen(r.Ytd, r.Nilai, r.DateBefore, false);
+      const mtmTxt = formatPersen(r.Mtm, r.Nilai, r.MonthBefore, false);
+      const rbbTxt = formatPersen(r.RBBC, r.Nilai, r.Target, true);
+
+      tr.innerHTML = `
+        <td>${idx + 1}</td>
+        <td>${r.UnitKerja}</td>
+        <td>${r.Kelompok}</td>
+        <td class="num-col"><strong>${formatRupiah(r.Nilai)}</strong></td>
+        <td class="num-col">${formatRupiah(r.Target)}</td>
+        <td class="num-col">${badgeGrowthHtml(yoyTxt)}</td>
+        <td class="num-col">${badgeGrowthHtml(ytdTxt)}</td>
+        <td class="num-col">${badgeGrowthHtml(mtmTxt)}</td>
+        <td class="num-col"><strong>${rbbTxt}</strong></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+</script>
