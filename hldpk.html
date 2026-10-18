@@ -1,72 +1,130 @@
-<div id="page-hlaset" style="display: none; flex-direction: column; gap: 16px;">
-  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-    <div style="display: flex; align-items: center; gap: 10px;">
-      <span class="chart-badge" style="font-size: 12px; padding: 6px 14px; background: #0a7340; color: #fff;">HIGHLIGHT KINERJA: ASET & LABA</span>
-      <span style="font-size: 12px; color: #64748b;" id="hlaset-sub-info">Menampilkan Aset & Laba</span>
+<!-- ================= FILE: hldpk.html — Highlight Dana Pihak Ketiga =================
+     Rancangan: KPI Nom DPK & NOA DPK • Trend DPK (Nominal & NOA) •
+     Komposisi DPK per Jenis Instrumen (Giro/Tabungan/Deposito) dan per Jenis Akad
+     (Mudharabah/Wadiah), masing-masing Nominal & NOA • Realisasi terhadap Target •
+     Leaderboard Unit Kerja • Tabel Realisasi per Konsolidasi / Unit Kerja. -->
+<div id="page-hldpk" class="page">
+  <div class="page-head">
+    <div class="page-head-left">
+      <span class="page-tag tag-dpk">HIGHLIGHT KINERJA: DANA PIHAK KETIGA</span>
+      <span class="page-sub-info" id="hld-info">-</span>
     </div>
-    <div style="display: flex; gap: 10px;">
-      <button class="btn-back-highlight" onclick="pilihSubMenu('aset_laba', MENU_CONFIG[1].items[0])">
-        <i data-lucide="external-link" style="width: 14px; height: 14px;"></i><span>Ke Detail Aset Tunggal</span>
-      </button>
-      <button class="btn-back-highlight" onclick="bukaHalamanHighlight()">
-        <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i><span>Kembali ke Menu Awal</span>
-      </button>
-    </div>
+    <button class="btn-back-highlight" onclick="bukaHalamanHighlight()">
+      <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i><span>Kembali ke Ringkasan</span>
+    </button>
   </div>
 
-  <!-- KPI ASET -->
-  <div class="kpi-grid-5">
-    <div class="kpi-box bg-main"><div class="kpi-head"><span>Aset (Nominal)</span><i data-lucide="landmark" style="width:16px;height:16px;"></i></div><div class="kpi-main-val" id="hla-val-aset">Rp 0</div><div class="kpi-sub-caption" id="hla-sub-aset">-</div></div>
-    <div class="kpi-box bg-yoy"><div class="kpi-head"><span>YoY Aset</span><i data-lucide="trending-up" style="width:16px;height:16px;"></i></div><div class="kpi-main-val" id="hla-yoy-aset">0%</div><div class="kpi-sub-caption" id="hla-sub-yoy-aset">-</div></div>
-    <div class="kpi-box bg-ytd"><div class="kpi-head"><span>Ytd Aset</span><i data-lucide="calendar-check" style="width:16px;height:16px;"></i></div><div class="kpi-main-val" id="hla-ytd-aset">0%</div><div class="kpi-sub-caption" id="hla-sub-ytd-aset">-</div></div>
-    <div class="kpi-box bg-mtm"><div class="kpi-head"><span>Mtm Aset</span><i data-lucide="activity" style="width:16px;height:16px;"></i></div><div class="kpi-main-val" id="hla-mtm-aset">0%</div><div class="kpi-sub-caption" id="hla-sub-mtm-aset">-</div></div>
-    <div class="kpi-box bg-rbb"><div class="kpi-head"><span>RBB/C Aset</span><i data-lucide="target" style="width:16px;height:16px;"></i></div><div class="kpi-main-val" id="hla-rbb-aset">0%</div><div class="kpi-sub-caption" id="hla-sub-rbb-aset">-</div></div>
-  </div>
+  <!-- KPI -->
+  <div class="kpi-grid-5" data-kpi="hld-nom" data-label="Nom DPK" data-icon="wallet" data-theme="bg-dpk"></div>
+  <div class="kpi-grid-5" data-kpi="hld-noa" data-label="NOA DPK" data-icon="users" data-theme="bg-alt"></div>
 
-  <!-- KPI LABA -->
-  <div class="kpi-grid-5">
-    <div class="kpi-box" style="background: linear-gradient(135deg, #0f766e 0%, #115e59 100%);"><div class="kpi-head"><span>Laba (Nominal)</span><i data-lucide="coins" style="width:16px;height:16px;"></i></div><div class="kpi-main-val" id="hla-val-laba">Rp 0</div><div class="kpi-sub-caption" id="hla-sub-laba">-</div></div>
-    <div class="kpi-box bg-yoy"><div class="kpi-head"><span>YoY Laba</span><i data-lucide="trending-up" style="width:16px;height:16px;"></i></div><div class="kpi-main-val" id="hla-yoy-laba">0%</div><div class="kpi-sub-caption" id="hla-sub-yoy-laba">-</div></div>
-    <div class="kpi-box bg-ytd"><div class="kpi-head"><span>Ytd Laba</span><i data-lucide="calendar-check" style="width:16px;height:16px;"></i></div><div class="kpi-main-val" id="hla-ytd-laba">0%</div><div class="kpi-sub-caption" id="hla-sub-ytd-laba">-</div></div>
-    <div class="kpi-box bg-mtm"><div class="kpi-head"><span>Mtm Laba</span><i data-lucide="activity" style="width:16px;height:16px;"></i></div><div class="kpi-main-val" id="hla-mtm-laba">0%</div><div class="kpi-sub-caption" id="hla-sub-mtm-laba">-</div></div>
-    <div class="kpi-box bg-rbb"><div class="kpi-head"><span>RBB/C Laba</span><i data-lucide="target" style="width:16px;height:16px;"></i></div><div class="kpi-main-val" id="hla-rbb-laba">0%</div><div class="kpi-sub-caption" id="hla-sub-rbb-laba">-</div></div>
-  </div>
-
-  <!-- TREND ASET & LABA -->
+  <!-- TREND DPK -->
   <div class="chart-card">
     <div class="chart-card-header">
-      <h3><i data-lucide="line-chart" style="width:18px;height:18px;color:var(--primary-green);"></i><span>Trend Aset & Laba</span></h3>
-      <span class="chart-badge" id="hla-badge-trend">Line Chart Aset & Laba</span>
+      <h3><i data-lucide="line-chart" style="width:18px;height:18px;color:var(--card-teal);"></i><span>Trend DPK (Nominal & NOA)</span></h3>
+      <span class="chart-badge" id="hld-badge-trend">-</span>
     </div>
-    <div class="canvas-line-wrap" style="height: 290px;"><canvas id="hlaTrendAsetLabaChart"></canvas></div>
+    <div class="canvas-line-wrap" style="height: 290px;"><canvas id="hldTrendChart"></canvas></div>
   </div>
 
-  <!-- RASIO KEUANGAN -->
+  <!-- KOMPOSISI DPK -->
   <div class="chart-card">
-    <div class="chart-card-header" style="margin-bottom: 16px;">
-      <h3><i data-lucide="pie-chart" style="width:18px;height:18px;color:var(--primary-green);"></i><span>Rasio Keuangan</span></h3>
+    <div class="chart-card-header">
+      <h3><i data-lucide="pie-chart" style="width:18px;height:18px;color:var(--card-teal);"></i><span>Komposisi DPK</span></h3>
+      <span class="chart-badge" id="hld-badge-komposisi">-</span>
     </div>
-    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
-      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 14px;"><div style="display:flex; justify-content:space-between; margin-bottom:8px;"><strong style="font-size:13px;">ROA</strong><span class="badge-growth badge-pos" id="hla-rasio-val-roa">0%</span></div><div style="height: 140px; position: relative;"><canvas id="hlaChartROA"></canvas></div></div>
-      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 14px;"><div style="display:flex; justify-content:space-between; margin-bottom:8px;"><strong style="font-size:13px;">FDR</strong><span class="badge-growth badge-pos" id="hla-rasio-val-fdr">0%</span></div><div style="height: 140px; position: relative;"><canvas id="hlaChartFDR"></canvas></div></div>
-      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 14px;"><div style="display:flex; justify-content:space-between; margin-bottom:8px;"><strong style="font-size:13px;">BOPO</strong><span class="badge-growth badge-pos" id="hla-rasio-val-bopo">0%</span></div><div style="height: 140px; position: relative;"><canvas id="hlaChartBOPO"></canvas></div></div>
-      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 14px;"><div style="display:flex; justify-content:space-between; margin-bottom:8px;"><strong style="font-size:13px;">NPF</strong><span class="badge-growth badge-pos" id="hla-rasio-val-npf">0%</span></div><div style="height: 140px; position: relative;"><canvas id="hlaChartNPF"></canvas></div></div>
-      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 14px;"><div style="display:flex; justify-content:space-between; margin-bottom:8px;"><strong style="font-size:13px;">NI</strong><span class="badge-growth badge-pos" id="hla-rasio-val-ni">0%</span></div><div style="height: 140px; position: relative;"><canvas id="hlaChartNI"></canvas></div></div>
-      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 14px;"><div style="display:flex; justify-content:space-between; margin-bottom:8px;"><strong style="font-size:13px;">CASA</strong><span class="badge-growth badge-pos" id="hla-rasio-val-casa">0%</span></div><div style="height: 140px; position: relative;"><canvas id="hlaChartCASA"></canvas></div></div>
+    <div class="grid-2">
+      <div class="mini-card">
+        <div class="mini-card-head"><div><strong>Per Jenis Instrumen</strong><small>Nominal • Giro, Tabungan, Deposito</small></div></div>
+        <div class="canvas-donut-wrap"><canvas id="hldInstrumenNom"></canvas></div>
+      </div>
+      <div class="mini-card">
+        <div class="mini-card-head"><div><strong>Per Jenis Akad</strong><small>Nominal • Mudharabah, Wadiah</small></div></div>
+        <div class="canvas-donut-wrap"><canvas id="hldAkadNom"></canvas></div>
+      </div>
+      <div class="mini-card">
+        <div class="mini-card-head"><div><strong>Per Jenis Instrumen</strong><small>NOA • Giro, Tabungan, Deposito</small></div></div>
+        <div class="canvas-donut-wrap"><canvas id="hldInstrumenNoa"></canvas></div>
+      </div>
+      <div class="mini-card">
+        <div class="mini-card-head"><div><strong>Per Jenis Akad</strong><small>NOA • Mudharabah, Wadiah</small></div></div>
+        <div class="canvas-donut-wrap"><canvas id="hldAkadNoa"></canvas></div>
+      </div>
     </div>
   </div>
 
-  <!-- ASET REALISASI -->
+  <!-- REALISASI & LEADERBOARD -->
   <div class="middle-charts-grid">
-    <div class="chart-card"><div class="chart-card-header"><h3><i data-lucide="bar-chart-3" style="width:18px;height:18px;color:var(--primary-green);"></i><span>Realisasi Target Aset</span></h3></div><div class="canvas-mid-wrap"><canvas id="hlaTargetAsetChart"></canvas></div></div>
-    <div class="chart-card"><div class="chart-card-header"><h3><i data-lucide="award" style="width:18px;height:18px;color:var(--primary-green);"></i><span>Leaderboard Aset</span></h3></div><div class="canvas-mid-wrap"><canvas id="hlaLeaderboardAsetChart"></canvas></div></div>
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <h3><i data-lucide="bar-chart-3" style="width:18px;height:18px;color:var(--card-teal);"></i><span>Realisasi terhadap Target Nominal</span></h3>
+        <span class="chart-badge" id="hld-badge-target">-</span>
+      </div>
+      <div class="canvas-mid-wrap"><canvas id="hldTargetChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <h3><i data-lucide="award" style="width:18px;height:18px;color:var(--card-teal);"></i><span>Leaderboard Realisasi Nominal Unit Kerja</span></h3>
+      </div>
+      <div class="canvas-mid-wrap"><canvas id="hldLeaderChart"></canvas></div>
+    </div>
   </div>
-  <div class="table-card"><div class="chart-card-header"><h3><i data-lucide="table" style="width:18px;height:18px;color:var(--primary-green);"></i><span>Tabel Realisasi Aset</span></h3><span class="chart-badge" id="hla-badge-table-aset">-</span></div><div class="table-responsive"><table class="realisasi-table"><thead><tr><th>No</th><th>Unit Kerja</th><th>Konsolidasi</th><th class="num-col">Aktual Aset (Rp)</th><th class="num-col">Target RBB/C Aset (Rp)</th><th class="num-col">YoY</th><th class="num-col">Ytd</th><th class="num-col">Mtm</th><th class="num-col">% RBB/C</th></tr></thead><tbody id="hlaTableBodyAset"></tbody></table></div></div>
 
-  <!-- LABA REALISASI -->
-  <div class="middle-charts-grid">
-    <div class="chart-card"><div class="chart-card-header"><h3><i data-lucide="bar-chart-3" style="width:18px;height:18px;color:#0f766e;"></i><span>Realisasi Target Laba</span></h3></div><div class="canvas-mid-wrap"><canvas id="hlaTargetLabaChart"></canvas></div></div>
-    <div class="chart-card"><div class="chart-card-header"><h3><i data-lucide="award" style="width:18px;height:18px;color:#0f766e;"></i><span>Leaderboard Laba</span></h3></div><div class="canvas-mid-wrap"><canvas id="hlaLeaderboardLabaChart"></canvas></div></div>
+  <!-- TABEL -->
+  <div class="table-card">
+    <div class="chart-card-header">
+      <h3><i data-lucide="table" style="width:18px;height:18px;color:var(--card-teal);"></i><span>Tabel Realisasi Nominal DPK per Konsolidasi / per Unit Kerja</span></h3>
+      <span class="chart-badge" id="hld-badge-table">-</span>
+    </div>
+    <div class="table-responsive">
+      <table class="realisasi-table">
+        <thead><tr><th>No</th><th>Unit Kerja</th><th class="num-col">Aktual Nominal (Rp)</th><th class="num-col">Aktual NOA</th><th class="num-col">Target RBB/C (Rp)</th><th class="num-col">YoY</th><th class="num-col">Ytd</th><th class="num-col">Mtm</th><th class="num-col">% RBB/C</th></tr></thead>
+        <tbody id="hldTable"></tbody>
+      </table>
+    </div>
   </div>
-  <div class="table-card"><div class="chart-card-header"><h3><i data-lucide="table" style="width:18px;height:18px;color:#0f766e;"></i><span>Tabel Realisasi Laba</span></h3><span class="chart-badge" id="hla-badge-table-laba">-</span></div><div class="table-responsive"><table class="realisasi-table"><thead><tr><th>No</th><th>Unit Kerja</th><th>Konsolidasi</th><th class="num-col">Aktual Laba (Rp)</th><th class="num-col">Target RBB/C Laba (Rp)</th><th class="num-col">YoY</th><th class="num-col">Ytd</th><th class="num-col">Mtm</th><th class="num-col">% RBB/C</th></tr></thead><tbody id="hlaTableBodyLaba"></tbody></table></div></div>
 </div>
+
+<script>
+  // Nama sheet sumber data DPK. Sheet akad (Mudharabah/Wadiah) belum ada di data mentah;
+  // tambahkan sheet dengan nama berikut (format kolom sama dengan "DPK 1") agar donut akad terisi.
+  const HLD_SHEET = {
+    nom: 'DPK 1',
+    noa: 'NOA DPK 1',
+    instrumenNom: [{ label: 'Giro', sheet: 'Gir 1' }, { label: 'Tabungan', sheet: 'Tab 1' }, { label: 'Deposito', sheet: 'Depo 1' }],
+    instrumenNoa: [{ label: 'Giro', sheet: 'NOA Gir 1' }, { label: 'Tabungan', sheet: 'NOA Tab 1' }, { label: 'Deposito', sheet: 'NOA Depo 1' }],
+    akadNom: [{ label: 'Mudharabah', sheet: 'Mudharabah 1' }, { label: 'Wadiah', sheet: 'Wadiah 1' }],
+    akadNoa: [{ label: 'Mudharabah', sheet: 'NOA Mudharabah 1' }, { label: 'Wadiah', sheet: 'NOA Wadiah 1' }]
+  };
+
+  PAGES.hldpk = {
+    title: () => 'HIGHLIGHT KINERJA / DANA PIHAK KETIGA',
+    primary: () => HLD_SHEET.nom,
+    sheets: () => [HLD_SHEET.nom, HLD_SHEET.noa]
+      .concat(HLD_SHEET.instrumenNom, HLD_SHEET.instrumenNoa, HLD_SHEET.akadNom, HLD_SHEET.akadNoa).map(x => x.sheet || x),
+
+    render(ctx) {
+      setTeks('hld-info', ctx.info);
+      renderKpi('hld-nom', HLD_SHEET.nom, ctx, 'rp');
+      renderKpi('hld-noa', HLD_SHEET.noa, ctx, 'num');
+
+      setTeks('hld-badge-trend', `Series: ${ctx.series}`);
+      renderTrendGanda('hldTrendChart', ctx,
+        { sheet: HLD_SHEET.nom, label: 'Nominal DPK', color: WARNA.teal, fmt: 'rp' },
+        { sheet: HLD_SHEET.noa, label: 'NOA DPK', color: WARNA.oranye, fmt: 'num' });
+
+      setTeks('hld-badge-komposisi', `${ctx.entity} • ${ctx.label}`);
+      renderDonut('hldInstrumenNom', ctx, HLD_SHEET.instrumenNom, 'rp');
+      renderDonut('hldAkadNom', ctx, HLD_SHEET.akadNom, 'rp');
+      renderDonut('hldInstrumenNoa', ctx, HLD_SHEET.instrumenNoa, 'num');
+      renderDonut('hldAkadNoa', ctx, HLD_SHEET.akadNoa, 'num');
+
+      setTeks('hld-badge-target', `Series: ${ctx.series}`);
+      renderRealisasiTarget('hldTargetChart', HLD_SHEET.nom, ctx);
+      renderLeaderboard('hldLeaderChart', HLD_SHEET.nom, ctx);
+
+      setTeks('hld-badge-table', `Periode: ${ctx.label}`);
+      renderTabelRealisasi('hldTable', ctx, { sheet: HLD_SHEET.nom, noaSheet: HLD_SHEET.noa });
+    }
+  };
+</script>
