@@ -1,0 +1,65 @@
+<!-- ================= FILE: login.html — Halaman Login ================= -->
+<div id="login-page">
+  <form class="login-card" onsubmit="prosesLogin(); return false;">
+    <h1>DASHBOARD DIVISI USAHA<br>SYARIAH</h1>
+    <p class="subtitle">Silakan masuk untuk melanjutkan..</p>
+    <div class="form-group">
+      <label for="username">Username</label>
+      <input type="text" id="username" placeholder="Masukkan username" autocomplete="username">
+    </div>
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="Masukkan password" autocomplete="current-password">
+    </div>
+    <button type="submit" class="btn-login" id="btnLogin">Masuk</button>
+    <div class="error-msg" id="loginError">Username atau password salah!</div>
+  </form>
+</div>
+
+<script>
+  function prosesLogin() {
+    const user = document.getElementById('username').value.trim();
+    const pass = document.getElementById('password').value;
+    const btn = document.getElementById('btnLogin');
+    const err = document.getElementById('loginError');
+
+    function selesai() {
+      btn.textContent = 'Masuk';
+      btn.disabled = false;
+    }
+    function tampilkanError(pesan) {
+      err.textContent = pesan;
+      err.style.display = 'block';
+    }
+
+    if (!user || !pass) {
+      tampilkanError('Username dan password wajib diisi.');
+      return;
+    }
+
+    btn.textContent = 'Memeriksa...';
+    btn.disabled = true;
+    err.style.display = 'none';
+
+    if (typeof google === 'undefined' || !google.script) {
+      selesai();
+      tampilkanError('Dashboard harus dibuka melalui URL Web App Google Apps Script.');
+      return;
+    }
+
+    google.script.run
+      .withSuccessHandler(function(res) {
+        selesai();
+        if (res && res.success) {
+          bukaDashboard(res);
+        } else {
+          tampilkanError((res && res.message) || 'Username atau password salah!');
+        }
+      })
+      .withFailureHandler(function(e) {
+        selesai();
+        tampilkanError('Gagal menghubungi server: ' + (e && e.message ? e.message : e));
+      })
+      .checkLogin(user, pass);
+  }
+</script>

@@ -1,9 +1,152 @@
-<!DOCTYPE html>
-<html>
-  <head>
-    <base target="_top">
-  </head>
-  <body>
-    
-  </body>
-</html>
+<!-- ================= FILE: hlpembiayaan.html — Highlight Pembiayaan =================
+     Rancangan: KPI Nom & NOA Pembiayaan • Trend Pembiayaan (Nominal & NOA) •
+     Komposisi per Jenis Penggunaan (Modal Kerja/Investasi/Konsumer), per Kategori
+     Debitur (Korporate/UMKM/Konsumer) — Nominal & NOA — serta Nominal NPF per
+     Kolektibilitas (1-5) dan % NPF • Realisasi terhadap Target • Leaderboard Unit
+     Kerja • Tabel Realisasi per Konsolidasi / Unit Kerja. -->
+<div id="page-hlpembiayaan" class="page">
+  <div class="page-head">
+    <div class="page-head-left">
+      <span class="page-tag tag-pby">HIGHLIGHT KINERJA: PEMBIAYAAN</span>
+      <span class="page-sub-info" id="hlp-info">-</span>
+    </div>
+    <button class="btn-back-highlight" onclick="bukaHalamanHighlight()">
+      <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i><span>Kembali ke Ringkasan</span>
+    </button>
+  </div>
+
+  <!-- KPI -->
+  <div class="kpi-grid-5" data-kpi="hlp-nom" data-label="Nom Pembiayaan" data-icon="hand-coins" data-theme="bg-pby"></div>
+  <div class="kpi-grid-5" data-kpi="hlp-noa" data-label="NOA Pembiayaan" data-icon="users" data-theme="bg-alt"></div>
+
+  <!-- TREND PEMBIAYAAN -->
+  <div class="chart-card">
+    <div class="chart-card-header">
+      <h3><i data-lucide="line-chart" style="width:18px;height:18px;color:var(--card-purple);"></i><span>Trend Pembiayaan (Nominal & NOA)</span></h3>
+      <span class="chart-badge" id="hlp-badge-trend">-</span>
+    </div>
+    <div class="canvas-line-wrap" style="height: 290px;"><canvas id="hlpTrendChart"></canvas></div>
+  </div>
+
+  <!-- KOMPOSISI PEMBIAYAAN -->
+  <div class="chart-card">
+    <div class="chart-card-header">
+      <h3><i data-lucide="pie-chart" style="width:18px;height:18px;color:var(--card-purple);"></i><span>Komposisi Pembiayaan</span></h3>
+      <span class="chart-badge" id="hlp-badge-komposisi">-</span>
+    </div>
+    <div class="grid-3">
+      <div class="mini-card">
+        <div class="mini-card-head"><div><strong>Per Jenis Penggunaan</strong><small>Nominal • Modal Kerja, Investasi, Konsumer</small></div></div>
+        <div class="canvas-donut-wrap"><canvas id="hlpGunaNom"></canvas></div>
+      </div>
+      <div class="mini-card">
+        <div class="mini-card-head"><div><strong>Per Kategori Debitur</strong><small>Nominal • Korporate, UMKM, Konsumer</small></div></div>
+        <div class="canvas-donut-wrap"><canvas id="hlpDebiturNom"></canvas></div>
+      </div>
+      <div class="mini-card">
+        <div class="mini-card-head"><div><strong>Per NPF</strong><small>Nominal NPF • Kolektibilitas 1-5</small></div></div>
+        <div class="canvas-donut-wrap"><canvas id="hlpKolNom"></canvas></div>
+      </div>
+      <div class="mini-card">
+        <div class="mini-card-head"><div><strong>Per Jenis Penggunaan</strong><small>NOA • Modal Kerja, Investasi, Konsumer</small></div></div>
+        <div class="canvas-donut-wrap"><canvas id="hlpGunaNoa"></canvas></div>
+      </div>
+      <div class="mini-card">
+        <div class="mini-card-head"><div><strong>Per Kategori Debitur</strong><small>NOA • Korporate, UMKM, Konsumer</small></div></div>
+        <div class="canvas-donut-wrap"><canvas id="hlpDebiturNoa"></canvas></div>
+      </div>
+      <div class="mini-card">
+        <div class="mini-card-head"><div><strong>% NPF</strong><small>Sesuai series data</small></div><span class="badge-growth badge-neutral" id="hlp-npf-val">-</span></div>
+        <div class="canvas-donut-wrap"><canvas id="hlpNpfChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REALISASI & LEADERBOARD -->
+  <div class="middle-charts-grid">
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <h3><i data-lucide="bar-chart-3" style="width:18px;height:18px;color:var(--card-purple);"></i><span>Realisasi terhadap Target Nominal</span></h3>
+        <span class="chart-badge" id="hlp-badge-target">-</span>
+      </div>
+      <div class="canvas-mid-wrap"><canvas id="hlpTargetChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <h3><i data-lucide="award" style="width:18px;height:18px;color:var(--card-purple);"></i><span>Leaderboard Realisasi Nominal Unit Kerja</span></h3>
+      </div>
+      <div class="canvas-mid-wrap"><canvas id="hlpLeaderChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- TABEL -->
+  <div class="table-card">
+    <div class="chart-card-header">
+      <h3><i data-lucide="table" style="width:18px;height:18px;color:var(--card-purple);"></i><span>Tabel Realisasi Nominal Pembiayaan per Konsolidasi / per Unit Kerja</span></h3>
+      <span class="chart-badge" id="hlp-badge-table">-</span>
+    </div>
+    <div class="table-responsive">
+      <table class="realisasi-table">
+        <thead><tr><th>No</th><th>Unit Kerja</th><th class="num-col">Aktual Nominal (Rp)</th><th class="num-col">Aktual NOA</th><th class="num-col">Target RBB/C (Rp)</th><th class="num-col">YoY</th><th class="num-col">Ytd</th><th class="num-col">Mtm</th><th class="num-col">% RBB/C</th></tr></thead>
+        <tbody id="hlpTable"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Nama sheet sumber data Pembiayaan. Sheet NOA MK/Inv dan Kolektibilitas belum ada
+  // di data mentah; tambahkan sheet dengan nama berikut (format kolom sama dengan
+  // "Pby 1") agar donut terkait terisi.
+  const HLP_SHEET = {
+    nom: 'Pby 1',
+    noa: 'NOA Pby 1',
+    npf: 'NPF 1',
+    gunaNom: [{ label: 'Modal Kerja', sheet: 'MK 1' }, { label: 'Investasi', sheet: 'Inv 1' }, { label: 'Konsumer', sheet: 'Kons 1' }],
+    gunaNoa: [{ label: 'Modal Kerja', sheet: 'NOA MK 1' }, { label: 'Investasi', sheet: 'NOA Inv 1' }, { label: 'Konsumer', sheet: 'NOA Kons 1' }],
+    debiturNom: [{ label: 'Korporate', sheet: 'Korp 1' }, { label: 'UMKM', sheet: 'UMKM 1' }, { label: 'Konsumer', sheet: 'Kons 1' }],
+    debiturNoa: [{ label: 'Korporate', sheet: 'NOA Korp 1' }, { label: 'UMKM', sheet: 'NOA UMKM 1' }, { label: 'Konsumer', sheet: 'NOA Kons 1' }],
+    kolNom: [
+      { label: 'Kol 1 (Lancar)', sheet: 'Kol1 1', color: '#0a7340' },
+      { label: 'Kol 2 (DPK)', sheet: 'Kol2 1', color: '#0b8793' },
+      { label: 'Kol 3 (Kurang Lancar)', sheet: 'Kol3 1', color: '#ea8010' },
+      { label: 'Kol 4 (Diragukan)', sheet: 'Kol4 1', color: '#dc2626' },
+      { label: 'Kol 5 (Macet)', sheet: 'Kol5 1', color: '#7f1d1d' }
+    ]
+  };
+
+  PAGES.hlpembiayaan = {
+    title: () => 'HIGHLIGHT KINERJA / PEMBIAYAAN',
+    primary: () => HLP_SHEET.nom,
+    sheets: () => {
+      const grup = [].concat(HLP_SHEET.gunaNom, HLP_SHEET.gunaNoa, HLP_SHEET.debiturNom, HLP_SHEET.debiturNoa, HLP_SHEET.kolNom).map(x => x.sheet);
+      return [...new Set([HLP_SHEET.nom, HLP_SHEET.noa, HLP_SHEET.npf].concat(grup))];
+    },
+
+    render(ctx) {
+      setTeks('hlp-info', ctx.info);
+      renderKpi('hlp-nom', HLP_SHEET.nom, ctx, 'rp');
+      renderKpi('hlp-noa', HLP_SHEET.noa, ctx, 'num');
+
+      setTeks('hlp-badge-trend', `Series: ${ctx.series}`);
+      renderTrendGanda('hlpTrendChart', ctx,
+        { sheet: HLP_SHEET.nom, label: 'Nominal Pembiayaan', color: WARNA.ungu, fmt: 'rp' },
+        { sheet: HLP_SHEET.noa, label: 'NOA Pembiayaan', color: WARNA.oranye, fmt: 'num' });
+
+      setTeks('hlp-badge-komposisi', `${ctx.entity} • ${ctx.label}`);
+      renderDonut('hlpGunaNom', ctx, HLP_SHEET.gunaNom, 'rp');
+      renderDonut('hlpDebiturNom', ctx, HLP_SHEET.debiturNom, 'rp');
+      renderDonut('hlpKolNom', ctx, HLP_SHEET.kolNom, 'rp');
+      renderDonut('hlpGunaNoa', ctx, HLP_SHEET.gunaNoa, 'num');
+      renderDonut('hlpDebiturNoa', ctx, HLP_SHEET.debiturNoa, 'num');
+      renderRasioMini('hlpNpfChart', HLP_SHEET.npf, ctx, 'hlp-npf-val', WARNA.merah);
+
+      setTeks('hlp-badge-target', `Series: ${ctx.series}`);
+      renderRealisasiTarget('hlpTargetChart', HLP_SHEET.nom, ctx);
+      renderLeaderboard('hlpLeaderChart', HLP_SHEET.nom, ctx);
+
+      setTeks('hlp-badge-table', `Periode: ${ctx.label}`);
+      renderTabelRealisasi('hlpTable', ctx, { sheet: HLP_SHEET.nom, noaSheet: HLP_SHEET.noa });
+    }
+  };
+</script>
