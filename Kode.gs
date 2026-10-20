@@ -2,16 +2,15 @@
  * ================================================================
  *  DASHBOARD DIVISI USAHA SYARIAH — BACKEND (Google Apps Script)
  * ================================================================
- *  Struktur file HTML (satu file per halaman menu; CSS & JS halaman
- *  ada di dalam file masing-masing, dimuat lewat include() dari Index.html):
- *    Index.html        : kerangka + CSS/JS bersama + Ringkasan Eksekutif
+ *  Struktur file HTML (semua di-include dari Index.html):
+ *    css.html          : stylesheet
  *    login.html        : halaman login
- *    Highlight Kinerja : hlaset, hldpk, hlpembiayaan
- *    Aset & Laba       : aset, laba, pendopr, byopr, penydana, bybaghas, fbi
- *    Dana Pihak Ketiga : dpk, giro, tabungan, deposito, noadpk
- *    Pembiayaan        : pembiayaan, korporate, umkm, konsumer, modalkerja,
- *                        investasi, noapby, ekskur, poskur, eksflpp, posflpp
- *    Rasio             : roa, ni, fdr, bopo, npf, casa, far, pctfbi, pctumkm
+ *    home.html         : highlight kinerja utama (ringkasan)
+ *    hlaset.html       : highlight Aset & Laba (+ rasio keuangan)
+ *    hldpk.html        : highlight Dana Pihak Ketiga
+ *    hlpembiayaan.html : highlight Pembiayaan
+ *    aset.html         : detail satu indikator (dipakai menu sidebar)
+ *    app.html          : logika inti (filter, navigasi, helper chart)
  *
  *  Sumber data: sheet berformat "<Indikator> 1" dari data mentah
  *  (kolom: Periode | Periode Date | Unit Kerja | <Nilai> | Target |
@@ -29,11 +28,6 @@ var CONFIG = {
   // Lama sesi login (detik).
   SESSION_SECONDS: 3600,
 
-  // Daftar pengguna. Untuk produksi, pindahkan ke Script Properties.
-  USERS: {
-    admin: { password: '123', nama: 'DIVISI USAHA SYARIAH', role: 'Administrator' },
-    syariah: { password: 'syariah', nama: 'DIVISI USAHA SYARIAH', role: 'User' }
-  }
 };
 
 function doGet(e) {
@@ -57,22 +51,62 @@ function include(filename) {
  * Autentikasi Login. Mengembalikan token sesi yang wajib dikirim
  * pada setiap permintaan data.
  */
+/**
+ * Autentikasi Login langsung dari tab "Users" di Spreadsheet.
+ * Mengembalikan token sesi yang wajib dikirim pada setiap permintaan data.
+ */
 function checkLogin(username, password) {
   var uname = (username || '').toString().trim().toLowerCase();
-  var user = CONFIG.USERS[uname];
-  if (!user || user.password !== (password || '').toString()) {
+  var pass = (password || '').toString();
+
+  // 1. Buka Spreadsheet
+  var ss = getSpreadsheet_();
+  if (!ss) {
+    return { success: false, message: 'Spreadsheet tidak ditemukan. Cek konfigurasi ID.' };
+  }
+
+  // 2. Akses sheet "Users"
+  var sheetUsers = ss.getSheetByName('Users');
+  if (!sheetUsers) {
+    return { success: false, message: 'Sheet "Users" belum dibuat di Spreadsheet!' };
+  }
+
+  // 3. Ambil semua data akun
+  var data = sheetUsers.getDataRange().getValues();
+  var userData = null;
+
+  // 4. Looping untuk mencocokkan username dan password
+  // Kita mulai dari i = 1 karena baris ke-0 (baris 1 di sheet) adalah header
+  for (var i = 1; i < data.length; i++) {
+    var dbUser = (data[i][0] || '').toString().trim().toLowerCase();
+    var dbPass = (data[i][1] || '').toString();
+    
+    // Jika ada yang cocok
+    if (uname === dbUser && pass === dbPass) {
+      userData = {
+        nama: (data[i][2] || '').toString().trim() || dbUser, // Ambil Kolom C (Nama)
+        role: (data[i][3] || '').toString().trim() || 'User'  // Ambil Kolom D (Role)
+      };
+      break; // Hentikan pencarian karena user sudah ketemu
+    }
+  }
+
+  // 5. Jika tidak ada yang cocok, tolak login
+  if (!userData) {
     return { success: false, message: 'Username atau Password yang Anda masukkan salah!' };
   }
 
+  // 6. Jika sukses, buat token sesi seperti biasa
   var token = Utilities.getUuid();
   CacheService.getScriptCache().put('sess_' + token, uname, CONFIG.SESSION_SECONDS);
+  
   return {
     success: true,
     token: token,
     expiresIn: CONFIG.SESSION_SECONDS,
-    nama: user.nama,
-    role: user.role,
-    inisial: user.nama.charAt(0).toUpperCase()
+    nama: userData.nama,
+    role: userData.role,
+    inisial: userData.nama.charAt(0).toUpperCase()
   };
 }
 
