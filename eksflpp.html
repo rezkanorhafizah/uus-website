@@ -1,0 +1,66 @@
+<!-- ================= FILE: eksflpp.html — Pembiayaan / Ekspansi FLPP =================
+     Sumber data: sheet "Eks FLPP 1".
+     Layout: 5 KPI • Trend • Realisasi terhadap Target • Leaderboard Unit Kerja • Tabel Realisasi. -->
+<style>
+  /* Warna aksen halaman (tag judul, ikon judul kartu) */
+  #page-eksflpp { --accent: #6343c6; }
+</style>
+
+<div id="page-eksflpp" class="page">
+  <div class="page-head">
+    <div class="page-head-left">
+      <span class="page-tag">PEMBIAYAAN: EKSPANSI FLPP</span>
+      <span class="page-sub-info" id="eksflpp-info">-</span>
+    </div>
+    <button class="btn-back-highlight" onclick="bukaHalamanHighlight()">
+      <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i><span>Kembali ke Ringkasan</span>
+    </button>
+  </div>
+
+  <!-- KPI -->
+  <div class="kpi-grid-5" data-kpi="eksflpp" data-label="Nom Ekspansi FLPP" data-icon="home" data-theme="bg-main"></div>
+
+  <!-- TREND -->
+  <div class="chart-card">
+    <div class="chart-card-header">
+      <h3><i data-lucide="line-chart" style="width:18px;height:18px;color:var(--accent);"></i><span>Trend Ekspansi FLPP</span></h3>
+      <span class="chart-badge" id="eksflpp-badge-trend">-</span>
+    </div>
+    <div class="canvas-line-wrap"><canvas id="eksflpp-trend"></canvas></div>
+  </div>
+
+  <!-- REALISASI & LEADERBOARD -->
+  <div class="middle-charts-grid">
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <h3><i data-lucide="bar-chart-3" style="width:18px;height:18px;color:var(--accent);"></i><span>Realisasi terhadap Target Ekspansi FLPP</span></h3>
+        <span class="chart-badge" id="eksflpp-badge-target">-</span>
+      </div>
+      <div class="canvas-mid-wrap"><canvas id="eksflpp-target"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <h3><i data-lucide="award" style="width:18px;height:18px;color:var(--accent);"></i><span>Leaderboard Realisasi Unit Kerja</span></h3>
+      </div>
+      <div class="canvas-mid-wrap"><canvas id="eksflpp-leader"></canvas></div>
+    </div>
+  </div>
+
+  <!-- TABEL -->
+  <div class="table-card">
+    <div class="chart-card-header">
+      <h3><i data-lucide="table" style="width:18px;height:18px;color:var(--accent);"></i><span>Tabel Realisasi Ekspansi FLPP per Konsolidasi / per Unit Kerja</span></h3>
+      <span class="chart-badge" id="eksflpp-badge-table">-</span>
+    </div>
+    <div class="table-responsive">
+      <table class="realisasi-table">
+        <thead><tr><th>No</th><th>Unit Kerja</th><th class="num-col">Data Aktual</th><th class="num-col">Target RBB/C</th><th class="num-col">YoY</th><th class="num-col">Ytd</th><th class="num-col">Mtm</th><th class="num-col">% RBB/C</th></tr></thead>
+        <tbody id="eksflpp-table"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  PAGES.eksflpp = halamanIndikator({ page: 'eksflpp', metric: 'Ekspansi FLPP', sheet: 'Eks FLPP 1', fmt: 'rp', warna: WARNA.ungu });
+</script>

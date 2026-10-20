@@ -2,15 +2,16 @@
  * ================================================================
  *  DASHBOARD DIVISI USAHA SYARIAH — BACKEND (Google Apps Script)
  * ================================================================
- *  Struktur file HTML (semua di-include dari Index.html):
- *    css.html          : stylesheet
+ *  Struktur file HTML (satu file per halaman menu; CSS & JS halaman
+ *  ada di dalam file masing-masing, dimuat lewat include() dari Index.html):
+ *    Index.html        : kerangka + CSS/JS bersama + Ringkasan Eksekutif
  *    login.html        : halaman login
- *    home.html         : highlight kinerja utama (ringkasan)
- *    hlaset.html       : highlight Aset & Laba (+ rasio keuangan)
- *    hldpk.html        : highlight Dana Pihak Ketiga
- *    hlpembiayaan.html : highlight Pembiayaan
- *    aset.html         : detail satu indikator (dipakai menu sidebar)
- *    app.html          : logika inti (filter, navigasi, helper chart)
+ *    Highlight Kinerja : hlaset, hldpk, hlpembiayaan
+ *    Aset & Laba       : aset, laba, pendopr, byopr, penydana, bybaghas, fbi
+ *    Dana Pihak Ketiga : dpk, giro, tabungan, deposito, noadpk
+ *    Pembiayaan        : pembiayaan, korporate, umkm, konsumer, modalkerja,
+ *                        investasi, noapby, ekskur, poskur, eksflpp, posflpp
+ *    Rasio             : roa, ni, fdr, bopo, npf, casa, far, pctfbi, pctumkm
  *
  *  Sumber data: sheet berformat "<Indikator> 1" dari data mentah
  *  (kolom: Periode | Periode Date | Unit Kerja | <Nilai> | Target |
