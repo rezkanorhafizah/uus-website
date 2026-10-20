@@ -5,23 +5,40 @@ Datanya dibaca langsung dari Google Spreadsheet (hasil unggah data mentah Excel)
 
 ## Struktur File
 
+Satu file HTML per halaman menu. CSS dan JavaScript khusus halaman ditulis langsung di
+dalam file halaman itu (`<style>` / `<script>`), tidak ada lagi `css.html` / `app.html`.
+
 | File | Isi |
 |---|---|
 | `Kode.gs` | Backend: `doGet`, login + token sesi, pembaca sheet (`getDataBundle`), cache |
-| `Index.html` | Kerangka halaman: memuat semua file di bawah lewat `include()` |
-| `css.html` | Seluruh stylesheet |
-| `app.html` | Logika inti: menu, filter, navigasi, format angka, helper chart & tabel |
+| `Index.html` | Kerangka (sidebar, topbar, filter), CSS & logika bersama (menu, filter, navigasi, helper chart & tabel), halaman **Ringkasan Eksekutif**, dan `include()` semua halaman lain |
 | `login.html` | Halaman login |
-| `home.html` | Highlight Kinerja: ringkasan eksekutif (kartu Aset/DPK/Pembiayaan) |
-| `hlaset.html` | Highlight Aset & Laba + Rasio Keuangan (ROA, FDR, BOPO, NPF, NI, CASA) |
-| `hldpk.html` | Highlight DPK (KPI, trend, komposisi instrumen & akad, realisasi, leaderboard, tabel) |
-| `hlpembiayaan.html` | Highlight Pembiayaan (KPI, trend, komposisi penggunaan/debitur/kolektibilitas, %NPF, realisasi, leaderboard, tabel) |
-| `aset.html` | Halaman detail satu indikator (dipakai semua sub-menu sidebar) |
+
+| Menu | File | Sheet |
+|---|---|---|
+| Highlight Kinerja | `hlaset.html`, `hldpk.html`, `hlpembiayaan.html` | lihat tabel Sumber Data |
+| Aset & Laba | `aset.html`, `laba.html`, `pendopr.html`, `byopr.html`, `penydana.html`, `bybaghas.html`, `fbi.html` | `Aset 1`, `Laba 1`, `Pend Opr 1`, `By Opr 1`, `Peny Dana 1`, `By BagHas 1`, `FBI 1` |
+| Dana Pihak Ketiga | `dpk.html`, `giro.html`, `tabungan.html`, `deposito.html`, `noadpk.html` | `DPK 1`, `Gir 1`, `Tab 1`, `Depo 1`, `NOA DPK 1` |
+| Pembiayaan | `pembiayaan.html`, `korporate.html`, `umkm.html`, `konsumer.html`, `modalkerja.html`, `investasi.html`, `noapby.html`, `ekskur.html`, `poskur.html`, `eksflpp.html`, `posflpp.html` | `Pby 1`, `Korp 1`, `UMKM 1`, `Kons 1`, `MK 1`, `Inv 1`, `NOA Pby 1`, `Eksp KUR 1`, `Pos KUR 1`, `Eks FLPP 1`, `Pos FLPP 1` |
+| Rasio | `roa.html`, `ni.html`, `fdr.html`, `bopo.html`, `npf.html`, `casa.html`, `far.html`, `pctfbi.html`, `pctumkm.html` | `ROA 1`, `NI 1`, `FDR 1`, `BOPO 1`, `NPF 1`, `CASA 1`, `FAR 1`, `%FBI 1`, `%UMKM 1` |
+
+Halaman indikator (Aset, Giro, ROA, dst) memakai layout 5 KPI • Trend • Realisasi vs Target •
+Leaderboard • Tabel. Nama sheet, format angka, dan warna aksen diatur di bagian `<script>` /
+`<style>` file masing-masing, mis. di `giro.html`:
+
+```html
+PAGES.giro = halamanIndikator({ page: 'giro', metric: 'Giro', sheet: 'Gir 1', fmt: 'rp', warna: WARNA.teal });
+```
+
+### Menambah halaman baru
+1. Salin salah satu file indikator (mis. `giro.html`) menjadi `namabaru.html`, ganti semua `giro` dengan `namabaru`, sesuaikan sheet & judul.
+2. Tambahkan `<?!= include('namabaru'); ?>` di `Index.html`.
+3. Tambahkan `{ name: '...', page: 'namabaru' }` di `MENU_CONFIG` (Index.html).
 
 ## Cara Pasang
 
 1. Unggah `Data_Mentah.xlsx` ke Google Drive → buka dengan Google Spreadsheet (File → Simpan sebagai Google Spreadsheet).
-2. Di Spreadsheet: **Ekstensi → Apps Script**. Buat file dengan nama persis seperti tabel di atas
+2. Di Spreadsheet: **Ekstensi → Apps Script**. Buat file dengan nama persis seperti tabel di atas (37 file HTML)
    (`Kode.gs` sebagai *Script*, sisanya sebagai *HTML*, tanpa ekstensi `.html` saat memberi nama), lalu salin isinya.
    - Bila script dibuat terpisah (standalone), isi `CONFIG.SPREADSHEET_ID` di `Kode.gs`.
 3. **Terapkan → Deployment baru → Aplikasi web**. Jalankan sebagai: *Saya*; Akses: sesuai kebutuhan.

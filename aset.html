@@ -1,83 +1,66 @@
-<!-- ================= FILE: aset.html — Detail Satu Indikator =================
-     Dipakai oleh semua sub-menu sidebar (Aset, Laba, Giro, Korporate, ROA, dst).
-     Layout: 5 KPI • Trend • Realisasi terhadap Target • Leaderboard • Tabel. -->
-<div id="page-detail" class="page">
+<!-- ================= FILE: aset.html — Aset & Laba / Aset =================
+     Sumber data: sheet "Aset 1".
+     Layout: 5 KPI • Trend • Realisasi terhadap Target • Leaderboard Unit Kerja • Tabel Realisasi. -->
+<style>
+  /* Warna aksen halaman (tag judul, ikon judul kartu) */
+  #page-aset { --accent: #0a7340; }
+</style>
+
+<div id="page-aset" class="page">
   <div class="page-head">
     <div class="page-head-left">
-      <span class="page-tag" id="det-tag">DETAIL INDIKATOR</span>
-      <span class="page-sub-info" id="det-info">-</span>
+      <span class="page-tag">ASET & LABA: ASET</span>
+      <span class="page-sub-info" id="aset-info">-</span>
     </div>
     <button class="btn-back-highlight" onclick="bukaHalamanHighlight()">
       <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i><span>Kembali ke Ringkasan</span>
     </button>
   </div>
 
-  <div class="kpi-grid-5" data-kpi="det" data-label="Nominal" data-icon="wallet" data-theme="bg-main"></div>
+  <!-- KPI -->
+  <div class="kpi-grid-5" data-kpi="aset" data-label="Nom Aset" data-icon="landmark" data-theme="bg-main"></div>
 
+  <!-- TREND -->
   <div class="chart-card">
     <div class="chart-card-header">
-      <h3><i data-lucide="line-chart" style="width:18px;height:18px;color:var(--primary-green);"></i><span id="det-title-trend">Trend</span></h3>
-      <span class="chart-badge" id="det-badge-trend">-</span>
+      <h3><i data-lucide="line-chart" style="width:18px;height:18px;color:var(--accent);"></i><span>Trend Aset</span></h3>
+      <span class="chart-badge" id="aset-badge-trend">-</span>
     </div>
-    <div class="canvas-line-wrap"><canvas id="detTrendChart"></canvas></div>
+    <div class="canvas-line-wrap"><canvas id="aset-trend"></canvas></div>
   </div>
 
+  <!-- REALISASI & LEADERBOARD -->
   <div class="middle-charts-grid">
     <div class="chart-card">
       <div class="chart-card-header">
-        <h3><i data-lucide="bar-chart-3" style="width:18px;height:18px;color:var(--primary-green);"></i><span>Realisasi terhadap Target</span></h3>
-        <span class="chart-badge" id="det-badge-target">-</span>
+        <h3><i data-lucide="bar-chart-3" style="width:18px;height:18px;color:var(--accent);"></i><span>Realisasi terhadap Target Aset</span></h3>
+        <span class="chart-badge" id="aset-badge-target">-</span>
       </div>
-      <div class="canvas-mid-wrap"><canvas id="detTargetChart"></canvas></div>
+      <div class="canvas-mid-wrap"><canvas id="aset-target"></canvas></div>
     </div>
     <div class="chart-card">
       <div class="chart-card-header">
-        <h3><i data-lucide="award" style="width:18px;height:18px;color:var(--primary-green);"></i><span>Leaderboard Realisasi Unit Kerja</span></h3>
+        <h3><i data-lucide="award" style="width:18px;height:18px;color:var(--accent);"></i><span>Leaderboard Realisasi Unit Kerja</span></h3>
       </div>
-      <div class="canvas-mid-wrap"><canvas id="detLeaderChart"></canvas></div>
+      <div class="canvas-mid-wrap"><canvas id="aset-leader"></canvas></div>
     </div>
   </div>
 
+  <!-- TABEL -->
   <div class="table-card">
     <div class="chart-card-header">
-      <h3><i data-lucide="table" style="width:18px;height:18px;color:var(--primary-green);"></i><span>Tabel Realisasi per Konsolidasi / per Unit Kerja</span></h3>
-      <span class="chart-badge" id="det-badge-table">-</span>
+      <h3><i data-lucide="table" style="width:18px;height:18px;color:var(--accent);"></i><span>Tabel Realisasi Aset per Konsolidasi / per Unit Kerja</span></h3>
+      <span class="chart-badge" id="aset-badge-table">-</span>
     </div>
     <div class="table-responsive">
       <table class="realisasi-table">
         <thead><tr><th>No</th><th>Unit Kerja</th><th class="num-col">Data Aktual</th><th class="num-col">Target RBB/C</th><th class="num-col">YoY</th><th class="num-col">Ytd</th><th class="num-col">Mtm</th><th class="num-col">% RBB/C</th></tr></thead>
-        <tbody id="detTable"></tbody>
+        <tbody id="aset-table"></tbody>
       </table>
     </div>
   </div>
 </div>
 
 <script>
-  PAGES.detail = {
-    title: () => {
-      const d = STATE.detail;
-      return d ? `${d.menuTitle.toUpperCase()} / ${d.name.toUpperCase()} (SHEET: ${d.sheet})` : 'DETAIL';
-    },
-    primary: () => STATE.detail.sheet,
-    sheets: () => [STATE.detail.sheet],
-
-    render(ctx) {
-      const d = STATE.detail;
-      setTeks('det-tag', `${d.menuTitle.toUpperCase()} — ${d.name.toUpperCase()}`);
-      setTeks('det-info', ctx.info);
-      setTeks('det-val-lbl', d.fmt === 'pct' ? d.metric : `Nom ${d.metric}`);
-      renderKpi('det', d.sheet, ctx, d.fmt);
-
-      setTeks('det-title-trend', `Trend ${d.metric}`);
-      setTeks('det-badge-trend', `Series: ${ctx.series}`);
-      renderTrendGanda('detTrendChart', ctx, { sheet: d.sheet, label: d.metric, color: WARNA.hijau, fmt: d.fmt });
-
-      setTeks('det-badge-target', `Series: ${ctx.series}`);
-      renderRealisasiTarget('detTargetChart', d.sheet, ctx, d.fmt);
-      renderLeaderboard('detLeaderChart', d.sheet, ctx, d.fmt);
-
-      setTeks('det-badge-table', `Periode: ${ctx.label}`);
-      renderTabelRealisasi('detTable', ctx, { sheet: d.sheet, fmt: d.fmt });
-    }
-  };
+  PAGES.aset = halamanIndikator({ page: 'aset', metric: 'Aset', sheet: 'Aset 1', fmt: 'rp', warna: WARNA.hijau });
 </script>

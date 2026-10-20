@@ -3,6 +3,21 @@
      Komposisi DPK per Jenis Instrumen (Giro/Tabungan/Deposito) dan per Jenis Akad
      (Mudharabah/Wadiah), masing-masing Nominal & NOA • Realisasi terhadap Target •
      Leaderboard Unit Kerja • Tabel Realisasi per Konsolidasi / Unit Kerja. -->
+<style>
+  .page-tag.tag-dpk { background: var(--card-teal); }
+  .kpi-box.bg-dpk { background: linear-gradient(135deg, #0b8793 0%, #065f68 100%); }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  @media (max-width: 760px) {
+    .grid-2 { grid-template-columns: 1fr; }
+  }
+</style>
+
 <div id="page-hldpk" class="page">
   <div class="page-head">
     <div class="page-head-left">

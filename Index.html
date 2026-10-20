@@ -1,4 +1,10 @@
 <!DOCTYPE html>
+<!-- ================= FILE: Index.html =================
+     Kerangka dashboard + halaman RINGKASAN EKSEKUTIF (Highlight Kinerja Utama).
+     Berisi: stylesheet bersama (layout, sidebar, topbar, filter, kartu, chart, tabel),
+     logika inti (menu, state, pemuatan data, filter, navigasi, helper chart & tabel),
+     lalu memuat setiap halaman menu lewat include(). Setiap file halaman membawa
+     <style> dan <script> miliknya sendiri dan mendaftarkan diri ke objek PAGES. -->
 <html lang="id">
 <head>
   <base target="_top">
@@ -10,11 +16,1801 @@
   <script src="https://unpkg.com/lucide@0.344.0/dist/umd/lucide.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
 
-  <?!= include('css'); ?>
+  <style>
+    /* ================= DASAR ================= */
+    :root {
+      --bg-light: #e6f4ea;
+      --bg-card-login: #cfead9;
+      --primary-green: #0a7340;
+      --primary-green-dark: #06522c;
+      --primary-green-hover: #085c33;
+      --card-teal: #0b8793;
+      --card-purple: #6343c6;
+      --card-orange: #ea8010;
+      --card-blue: #1d4ed8;
+      --text-dark: #1e293b;
+      --text-muted: #64748b;
+      --sidebar-width: 275px;
+      --sidebar-collapsed-width: 80px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-light);
+      color: var(--text-dark);
+      overflow-x: hidden;
+    }
+
+    /* ================= HALAMAN DASHBOARD ================= */
+    #dashboard-page {
+      display: none;
+      min-height: 100vh;
+      padding: 14px;
+    }
+
+    .app-layout {
+      display: flex;
+      width: 100%;
+      min-height: calc(100vh - 28px);
+      gap: 20px;
+    }
+
+    /* ================= SIDEBAR MODERN ================= */
+    .sidebar {
+      width: var(--sidebar-width);
+      background: linear-gradient(165deg, #0b7a44 0%, #075931 100%);
+      border-radius: 24px;
+      color: #ffffff;
+      padding: 24px 0;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      max-height: calc(100vh - 28px);
+      position: sticky;
+      top: 14px;
+      box-shadow: 0 12px 30px rgba(7, 89, 49, 0.22);
+      transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 50;
+    }
+
+    .sidebar.collapsed {
+      width: var(--sidebar-collapsed-width);
+    }
+
+    .sidebar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 20px 0 22px;
+      margin-bottom: 24px;
+      min-height: 48px;
+    }
+
+    .brand-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      overflow: hidden;
+      white-space: nowrap;
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      background: rgba(255, 255, 255, 0.16);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .brand-text h2 {
+      font-size: 16.5px;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+
+    .sidebar.collapsed .brand-wrapper {
+      display: none;
+    }
+
+    .sidebar.collapsed .sidebar-header {
+      justify-content: center;
+      padding: 0;
+    }
+
+    .btn-collapse {
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: white;
+      width: 36px;
+      height: 36px;
+      border-radius: 11px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.25s ease;
+    }
+
+    .btn-collapse:hover {
+      background: rgba(255, 255, 255, 0.28);
+    }
+
+    .btn-collapse svg {
+      width: 18px;
+      height: 18px;
+      transition: transform 0.35s ease;
+    }
+
+    .sidebar.collapsed .btn-collapse svg {
+      transform: rotate(180deg);
+    }
+
+    .menu-caption {
+      font-size: 10.5px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: rgba(255, 255, 255, 0.55);
+      padding: 0 24px;
+      margin-bottom: 10px;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .sidebar.collapsed .menu-caption {
+      opacity: 0;
+      height: 0;
+      margin: 0;
+    }
+
+    .nav-scroll {
+      overflow-y: auto;
+      overflow-x: hidden;
+      flex: 1;
+      padding-bottom: 16px;
+    }
+
+    .nav-scroll::-webkit-scrollbar {
+      width: 4px;
+    }
+    .nav-scroll::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.22);
+      border-radius: 4px;
+    }
+
+    .nav-list {
+      list-style: none;
+    }
+
+    .nav-item {
+      padding: 12px 18px;
+      margin-left: 14px;
+      border-radius: 28px 0 0 28px;
+      font-size: 12.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.25s ease;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    .nav-item-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .nav-icon {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+    }
+
+    .nav-item.active {
+      background-color: var(--bg-light);
+      color: var(--primary-green);
+      font-weight: 700;
+      box-shadow: -4px 4px 12px rgba(0, 0, 0, 0.06);
+    }
+
+    .nav-item:not(.active):hover {
+      background-color: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+    }
+
+    .chevron-icon {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      transition: transform 0.3s ease;
+      opacity: 0.8;
+    }
+
+    .nav-item.open-menu .chevron-icon {
+      transform: rotate(180deg);
+    }
+
+    .sidebar.collapsed .nav-item {
+      margin: 6px 12px;
+      padding: 13px 0;
+      border-radius: 14px;
+      justify-content: center;
+    }
+
+    .sidebar.collapsed .nav-label,
+    .sidebar.collapsed .chevron-icon,
+    .sidebar.collapsed .submenu-list {
+      display: none !important;
+    }
+
+    .submenu-list {
+      list-style: none;
+      margin: 2px 14px 10px 31px;
+      padding-left: 14px;
+      border-left: 1.5px solid rgba(255, 255, 255, 0.22);
+      display: none;
+    }
+
+    .submenu-list.open {
+      display: block;
+    }
+
+    .submenu-item {
+      padding: 8px 12px;
+      font-size: 11.5px;
+      color: rgba(255, 255, 255, 0.78);
+      cursor: pointer;
+      line-height: 1.35;
+      border-radius: 9px;
+      transition: all 0.2s;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 2px;
+    }
+
+    .submenu-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background-color: rgba(255, 255, 255, 0.45);
+      flex-shrink: 0;
+    }
+
+    .submenu-item:hover {
+      color: #ffffff;
+      background-color: rgba(255, 255, 255, 0.1);
+      padding-left: 15px;
+    }
+
+    .submenu-item.active-sub {
+      color: #ffffff;
+      font-weight: 700;
+      background-color: rgba(255, 255, 255, 0.18);
+    }
+
+    .submenu-item.active-sub .submenu-dot {
+      background-color: #4ade80;
+      transform: scale(1.4);
+      box-shadow: 0 0 6px #4ade80;
+    }
+
+    /* ================= AREA UTAMA ================= */
+    .main-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding-right: 4px;
+      min-width: 0;
+    }
+
+    /* TOPBAR */
+    .topbar {
+      background-color: #ffffff;
+      border-radius: 18px;
+      padding: 15px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .btn-toggle-top {
+      background-color: #f1f5f9;
+      border: none;
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--primary-green);
+      cursor: pointer;
+    }
+
+    .topbar-titles h1 {
+      font-size: 18.5px;
+      font-weight: 700;
+      color: #1e293b;
+    }
+
+    .breadcrumb-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 2px;
+    }
+
+    .topbar-titles p {
+      font-size: 11px;
+      color: #64748b;
+      text-transform: uppercase;
+      font-weight: 500;
+    }
+
+    .sync-status-badge {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 9px;
+      border-radius: 12px;
+      background-color: #dcfce7;
+      color: #15803d;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .sync-status-badge.fallback {
+      background-color: #fef3c7;
+      color: #b45309;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-sync {
+      background-color: #ecfdf5;
+      border: 1px solid #a7f3d0;
+      color: var(--primary-green);
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-sync:hover {
+      background-color: #d1fae5;
+    }
+
+    .btn-sync.spinning svg {
+      animation: spin 0.9s linear infinite;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .session-timer {
+      font-size: 12px;
+      color: #64748b;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .user-badge {
+      display: flex;
+      align-items: center;
+      background-color: #f1f5f9;
+      padding: 5px 14px 5px 6px;
+      border-radius: 40px;
+      gap: 10px;
+    }
+
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      background-color: var(--primary-green);
+      color: #ffffff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .user-details .name {
+      font-size: 11px;
+      font-weight: 700;
+      color: #1e293b;
+    }
+
+    .user-details .role {
+      font-size: 10.5px;
+      color: #64748b;
+    }
+
+    .btn-logout {
+      background-color: #f1f5f9;
+      border: none;
+      padding: 9px 15px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #334155;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-logout:hover {
+      background-color: #fee2e2;
+      color: #dc2626;
+    }
+
+    /* ================= FILTER UTAMA ================= */
+    .filter-grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+
+    .filter-card {
+      background-color: #ffffff;
+      padding: 12px 16px;
+      border-radius: 14px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+      border: 1px solid rgba(10, 115, 64, 0.08);
+    }
+
+    .filter-card label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--primary-green);
+      margin-bottom: 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+
+    .filter-card select {
+      width: 100%;
+      border: none;
+      outline: none;
+      font-size: 13px;
+      font-weight: 600;
+      color: #1e293b;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    /* ================= HALAMAN RINGKASAN EKSEKUTIF (Index) ================= */
+
+    .highlight-banner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .highlight-banner h2 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1e293b;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .highlight-banner span.hint {
+      font-size: 12px;
+      color: #64748b;
+    }
+
+    .highlight-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    .hl-card {
+      border-radius: 20px;
+      padding: 24px 26px;
+      color: #ffffff;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 195px;
+    }
+
+    .hl-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 14px 28px rgba(0, 0, 0, 0.14);
+    }
+
+    .hl-card.card-aset { background: linear-gradient(135deg, #0a7340 0%, #064e2a 100%); }
+    .hl-card.card-dpk  { background: linear-gradient(135deg, #0b8793 0%, #065f68 100%); }
+    .hl-card.card-pby  { background: linear-gradient(135deg, #6343c6 0%, #432996 100%); }
+
+    .hl-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 18px;
+    }
+
+    .hl-card-title {
+      font-size: 15px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .hl-card-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hl-metrics-row {
+      display: flex;
+      gap: 28px;
+      margin-bottom: 16px;
+    }
+
+    .hl-metric-item span.lbl {
+      display: block;
+      font-size: 10.5px;
+      text-transform: uppercase;
+      opacity: 0.82;
+      margin-bottom: 3px;
+    }
+
+    .hl-metric-item span.val {
+      font-size: 21px;
+      font-weight: 700;
+    }
+
+    .hl-card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 12px;
+      border-top: 1px solid rgba(255, 255, 255, 0.18);
+      font-size: 11.5px;
+      font-weight: 600;
+    }
+
+    .hl-card-footer .goto-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(255, 255, 255, 0.2);
+      padding: 4px 11px;
+      border-radius: 20px;
+      font-size: 11px;
+    }
+
+    /* ================= STYLE KOMPONEN UMUM ================= */
+    .btn-back-highlight {
+      background-color: #ffffff;
+      border: 1px solid #cbd5e1;
+      color: var(--primary-green);
+      padding: 7px 14px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .btn-back-highlight:hover {
+      background-color: #f1f8f4;
+      border-color: var(--primary-green);
+    }
+
+    .kpi-grid-5 {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr 1fr 1fr 1.1fr;
+      gap: 14px;
+    }
+
+    .kpi-box {
+      border-radius: 16px;
+      padding: 18px 20px;
+      color: #ffffff;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kpi-box.bg-main { background: linear-gradient(135deg, #0a7340 0%, #06522c 100%); }
+    .kpi-box.bg-yoy  { background: linear-gradient(135deg, #0b8793 0%, #07636c 100%); }
+    .kpi-box.bg-ytd  { background: linear-gradient(135deg, #6343c6 0%, #4a2ea3 100%); }
+    .kpi-box.bg-mtm  { background: linear-gradient(135deg, #ea8010 0%, #c46404 100%); }
+    .kpi-box.bg-rbb  { background: linear-gradient(135deg, #1d4ed8 0%, #163aa3 100%); }
+
+    .kpi-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      opacity: 0.92;
+      margin-bottom: 8px;
+    }
+
+    .kpi-main-val {
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 4px;
+    }
+
+    .kpi-sub-caption {
+      font-size: 10.5px;
+      opacity: 0.82;
+      font-weight: 400;
+    }
+
+    .chart-card {
+      background-color: #ffffff;
+      border-radius: 18px;
+      padding: 20px 24px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chart-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .chart-card-header h3 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #1e293b;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .chart-badge {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--primary-green);
+      background-color: #e6f4ea;
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+
+    .canvas-line-wrap {
+      position: relative;
+      height: 270px;
+      width: 100%;
+    }
+
+    .middle-charts-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 1fr;
+      gap: 16px;
+    }
+
+    .canvas-mid-wrap {
+      position: relative;
+      height: 310px;
+      width: 100%;
+    }
+
+    .table-card {
+      background-color: #ffffff;
+      border-radius: 18px;
+      padding: 20px 24px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+      margin-bottom: 16px;
+    }
+
+    .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+      margin-top: 10px;
+    }
+
+    table.realisasi-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+    }
+
+    table.realisasi-table thead th {
+      background-color: #f1f8f4;
+      color: var(--primary-green);
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 11px;
+      padding: 12px 14px;
+      text-align: left;
+      border-bottom: 2px solid #cfead9;
+      white-space: nowrap;
+    }
+
+    table.realisasi-table thead th.num-col,
+    table.realisasi-table tbody td.num-col {
+      text-align: right;
+    }
+
+    table.realisasi-table tbody td {
+      padding: 11px 14px;
+      border-bottom: 1px solid #f1f5f9;
+      color: #334155;
+      white-space: nowrap;
+    }
+
+    table.realisasi-table tbody tr:hover {
+      background-color: #f8fafc;
+    }
+
+
+    .badge-growth {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 11.5px;
+    }
+
+    .badge-pos { background-color: #dcfce7; color: #15803d; }
+    .badge-neg { background-color: #fee2e2; color: #b91c1c; }
+    .badge-neutral { background-color: #f1f5f9; color: #64748b; }
+
+
+    /* ================= HALAMAN (VIEW) ================= */
+    .page {
+      --accent: var(--primary-green); /* bisa diganti per halaman: #page-xxx { --accent: ... } */
+      display: none;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .page.active { display: flex; }
+
+    .page-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .page-head-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .page-tag {
+      font-size: 12px;
+      font-weight: 700;
+      padding: 6px 14px;
+      border-radius: 20px;
+      color: #ffffff;
+      background: var(--accent);
+      letter-spacing: 0.3px;
+    }
+
+    .page-sub-info {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .kpi-box.bg-alt { background: linear-gradient(135deg, #0f766e 0%, #115e59 100%); }
+
+    /* GRID KOMPOSISI (DONUT) */
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .mini-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .mini-card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .mini-card-head strong {
+      font-size: 12.5px;
+      color: var(--text-dark);
+    }
+
+    .mini-card-head small {
+      display: block;
+      font-size: 10.5px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .canvas-donut-wrap {
+      position: relative;
+      height: 230px;
+      width: 100%;
+    }
+
+    /* STATE KOSONG DI ATAS CANVAS */
+    .chart-empty {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 12px;
+      font-size: 11.5px;
+      color: var(--text-muted);
+      background: rgba(248, 250, 252, 0.92);
+      border: 1px dashed #cbd5e1;
+      border-radius: 12px;
+    }
+
+    /* TABEL HIERARKI KONSOLIDASI */
+    table.realisasi-table tbody tr.row-group td {
+      background-color: #f0f9f4;
+      font-weight: 700;
+      color: var(--primary-green-dark);
+    }
+
+    table.realisasi-table tbody tr.row-total td {
+      background-color: #e6f4ea;
+      font-weight: 700;
+      color: var(--primary-green-dark);
+      border-top: 2px solid #b7dfc6;
+    }
+
+    table.realisasi-table tbody tr.row-selected td:first-child {
+      box-shadow: inset 3px 0 0 var(--card-orange);
+    }
+
+    table.realisasi-table td.indent { padding-left: 28px; }
+
+    .table-empty {
+      text-align: center;
+      color: var(--text-muted);
+      padding: 18px !important;
+    }
+
+    @media (max-width: 1200px) {
+      .grid-3 { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 760px) {
+      #dashboard-page { padding: 8px; }
+      .app-layout { flex-direction: column; gap: 12px; }
+      .sidebar { width: 100%; position: static; max-height: none; padding: 16px 0; }
+      .sidebar.collapsed { width: 100%; }
+      .sidebar.collapsed .nav-scroll { display: none; }
+      .filter-grid-4,
+      .kpi-grid-5,
+      .grid-3 { grid-template-columns: 1fr; }
+      .topbar { padding: 12px 14px; }
+      .chart-card, .table-card { padding: 16px; }
+    }
+  </style>
 </head>
 <body>
-  <!-- Logika inti (konfigurasi, state, helper) dimuat lebih dulu agar halaman dapat mendaftar ke PAGES -->
-  <?!= include('app'); ?>
+  <!-- ================= LOGIKA INTI =================
+       Dimuat lebih dulu agar setiap halaman dapat mendaftar ke PAGES. -->
+  <script>
+    /* ======================= KONFIGURASI ======================= */
+    const ENTITAS_UUS = 'Unit Usaha Syariah';
+    const KONSOL_BJM = 'KCS Banjarmasin Konsolidasi';
+    const KONSOL_KDG = 'KCS Kandangan Konsolidasi';
+    const UUS_KP = 'UUS KP';
+    const ENTITAS_KONSOLIDASI = [ENTITAS_UUS, UUS_KP, KONSOL_BJM, KONSOL_KDG];
+
+    // Dipakai bila data sheet belum memuat kolom "Kelompok Unit Kerja".
+    const DEFAULT_ANGGOTA = {
+      [KONSOL_BJM]: ['Zonasi KCS Banjarmasin', 'Zonasi KCS Batulicin', 'Zonasi KCPS Banjarbaru Q Mall', 'Zonasi KCPS Gatot Subroto', 'Zonasi KCPS Handil Bakti', 'Zonasi KCPS Martapura', 'Zonasi KCPS Pelaihari'],
+      [KONSOL_KDG]: ['Zonasi KCS Kandangan', 'Zonasi KCPS Amuntai', 'Zonasi KCPS Paringin', 'Zonasi KCPS Barabai', 'Zonasi KCPS Tanjung', 'Zonasi KCPS Rantau']
+    };
+
+    const WARNA = {
+      hijau: '#0a7340', teal: '#0b8793', ungu: '#6343c6', oranye: '#ea8010', biru: '#1d4ed8', merah: '#dc2626',
+      palet: ['#0a7340', '#0b8793', '#ea8010', '#6343c6', '#1d4ed8']
+    };
+
+    const NAMA_BULAN = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'];
+
+    // fmt: 'rp' = nominal Rupiah, 'num' = jumlah rekening (NOA), 'pct' = rasio
+    // Urutan sidebar. "page" = id halaman = nama file HTML-nya (mis. page: 'giro' -> giro.html).
+    // Ringkasan Eksekutif (page: 'home') ada di Index.html.
+    const MENU_CONFIG = [
+      {
+        id: 'highlight', title: 'Highlight Kinerja', icon: 'sparkles',
+        items: [
+          { name: 'Ringkasan Eksekutif', page: 'home' },
+          { name: 'Aset & Laba', page: 'hlaset' },
+          { name: 'DPK', page: 'hldpk' },
+          { name: 'Pembiayaan', page: 'hlpembiayaan' }
+        ]
+      },
+      {
+        id: 'aset_laba', title: 'Aset & Laba', icon: 'trending-up',
+        items: [
+          { name: 'Aset', page: 'aset' },
+          { name: 'Laba', page: 'laba' },
+          { name: 'Pendapatan Operasional', page: 'pendopr' },
+          { name: 'Biaya Operasional', page: 'byopr' },
+          { name: 'Pendapatan Penyaluran Dana', page: 'penydana' },
+          { name: 'Biaya Bagi Hasil & Bonus', page: 'bybaghas' },
+          { name: 'Pendapatan Fee Based Income', page: 'fbi' }
+        ]
+      },
+      {
+        id: 'dpk', title: 'Dana Pihak Ketiga', icon: 'wallet',
+        items: [
+          { name: 'Total DPK', page: 'dpk' },
+          { name: 'Giro', page: 'giro' },
+          { name: 'Tabungan', page: 'tabungan' },
+          { name: 'Deposito', page: 'deposito' },
+          { name: 'NOA DPK', page: 'noadpk' }
+        ]
+      },
+      {
+        id: 'pembiayaan', title: 'Pembiayaan', icon: 'hand-coins',
+        items: [
+          { name: 'Total Pembiayaan', page: 'pembiayaan' },
+          { name: 'Korporate', page: 'korporate' },
+          { name: 'UMKM', page: 'umkm' },
+          { name: 'Konsumer', page: 'konsumer' },
+          { name: 'Modal Kerja', page: 'modalkerja' },
+          { name: 'Investasi', page: 'investasi' },
+          { name: 'NOA Pembiayaan', page: 'noapby' },
+          { name: 'Ekspansi KUR', page: 'ekskur' },
+          { name: 'Posisi KUR', page: 'poskur' },
+          { name: 'Ekspansi FLPP', page: 'eksflpp' },
+          { name: 'Posisi FLPP', page: 'posflpp' }
+        ]
+      },
+      {
+        id: 'rasio', title: 'Rasio', icon: 'pie-chart',
+        items: [
+          { name: 'ROA', page: 'roa' },
+          { name: 'NI', page: 'ni' },
+          { name: 'FDR', page: 'fdr' },
+          { name: 'BOPO', page: 'bopo' },
+          { name: 'NPF', page: 'npf' },
+          { name: 'CASA', page: 'casa' },
+          { name: 'FAR', page: 'far' },
+          { name: '% FBI', page: 'pctfbi' },
+          { name: '% UMKM', page: 'pctumkm' }
+        ]
+      }
+    ];
+
+    /* ======================= STATE ======================= */
+    const PAGES = {};          // diisi oleh file halaman: PAGES.hldpk = {...}
+    const DATA = {};           // nama sheet -> array baris ternormalisasi
+    const DATA_IDX = {};       // nama sheet -> Map("unit|periode" -> baris)
+    const MISSING = new Set(); // sheet yang tidak ditemukan di Spreadsheet
+    const CHARTS = {};         // id canvas -> instance Chart.js
+    const KELOMPOK_UNIT = new Map(); // unit kerja -> kelompok konsolidasi
+
+    const STATE = {
+      token: null,
+      page: 'home',
+      activeMenuId: 'highlight',
+      lastUpdated: ''
+    };
+
+    let countdownInterval = null, autoSyncInterval = null, permintaanKe = 0;
+
+    /* ======================= FORMAT ======================= */
+    function esc(str) {
+      return (str === null || str === undefined ? '' : str.toString())
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function fmtRp(n) {
+      return n === null || n === undefined ? '-' : 'Rp ' + Math.round(n).toLocaleString('id-ID');
+    }
+
+    function fmtNum(n) {
+      return n === null || n === undefined ? '-' : Math.round(n).toLocaleString('id-ID');
+    }
+
+    function fmtPct(d, digit = 2) {
+      if (d === null || d === undefined || !isFinite(d)) return '-';
+      return (d * 100).toLocaleString('id-ID', { minimumFractionDigits: digit, maximumFractionDigits: digit }) + '%';
+    }
+
+    function fmtNilai(n, fmt) {
+      if (fmt === 'pct') return fmtPct(n);
+      if (fmt === 'num') return fmtNum(n);
+      return fmtRp(n);
+    }
+
+    function fmtSumbu(v, fmt) {
+      if (fmt === 'pct') return (v * 100).toLocaleString('id-ID', { maximumFractionDigits: 1 }) + '%';
+      return Number(v).toLocaleString('id-ID');
+    }
+
+    function badgeGrowth(d) {
+      if (d === null || d === undefined || !isFinite(d)) return '<span class="badge-growth badge-neutral">-</span>';
+      const cls = d < 0 ? 'badge-neg' : (d > 0 ? 'badge-pos' : 'badge-neutral');
+      return `<span class="badge-growth ${cls}">${fmtPct(d)}</span>`;
+    }
+
+    function namaPendek(unit) {
+      return (unit || '').replace(/^Zonasi\s+/i, '');
+    }
+
+    /* ======================= PERIODE ======================= */
+    function labelPeriode(p) {
+      if (!p) return '-';
+      const [y, m] = p.split('-');
+      return `${NAMA_BULAN[Number(m) - 1]} ${y}`;
+    }
+
+    function geserPeriode(p, deltaBulan) {
+      const [y, m] = p.split('-').map(Number);
+      const total = y * 12 + (m - 1) + deltaBulan;
+      return `${Math.floor(total / 12)}-${('0' + (total % 12 + 1)).slice(-2)}`;
+    }
+
+    function daftarPeriode(sheet) {
+      return [...new Set((DATA[sheet] || []).map(r => r.p))].sort();
+    }
+
+    function periodeSesuaiSeries(semua, pTerpilih, series) {
+      const sampai = semua.filter(p => p <= pTerpilih);
+      if (series === 'Triwulanan') return sampai.filter(p => ['03', '06', '09', '12'].includes(p.slice(5)) || p === pTerpilih);
+      if (series === 'Tahunan') return sampai.filter(p => p.slice(5) === '12' || p === pTerpilih);
+      return sampai;
+    }
+
+    /* ======================= AKSES DATA ======================= */
+    function simpanSheet(nama, rows) {
+      DATA[nama] = rows;
+      const idx = new Map();
+      rows.forEach(r => {
+        idx.set(r.u + '|' + r.p, r);
+        if (r.k && !ENTITAS_KONSOLIDASI.includes(r.u) && !KELOMPOK_UNIT.has(r.u)) KELOMPOK_UNIT.set(r.u, r.k);
+      });
+      DATA_IDX[nama] = idx;
+    }
+
+    function sheetAda(sheet) {
+      return !!DATA[sheet];
+    }
+
+    function baris(sheet, unit, p) {
+      const idx = DATA_IDX[sheet];
+      return idx ? (idx.get(unit + '|' + p) || null) : null;
+    }
+
+    function nilai(sheet, unit, p) {
+      const r = baris(sheet, unit, p);
+      return r ? r.v : null;
+    }
+
+    function tumbuh(a, b) {
+      return (a === null || a === undefined || !b) ? null : (a - b) / Math.abs(b);
+    }
+
+    /**
+     * Nilai + pertumbuhan satu unit pada satu periode. Memakai angka YoY/Ytd/Mtm/RBB/C
+     * dari sheet; bila kosong dihitung dari data periode pembanding.
+     */
+    function kinerja(sheet, unit, p) {
+      const r = baris(sheet, unit, p);
+      const v = r ? r.v : null;
+      const vY = nilai(sheet, unit, geserPeriode(p, -12));
+      const vD = nilai(sheet, unit, `${Number(p.slice(0, 4)) - 1}-12`);
+      const vM = nilai(sheet, unit, geserPeriode(p, -1));
+      const t = r ? r.t : null;
+      const pilih = (dariSheet, hitung) => (dariSheet !== null && dariSheet !== undefined) ? dariSheet : hitung;
+      return {
+        v, t, vY, vD, vM,
+        yoy: pilih(r && r.yoy, tumbuh(v, vY)),
+        ytd: pilih(r && r.ytd, tumbuh(v, vD)),
+        mtm: pilih(r && r.mtm, tumbuh(v, vM)),
+        rbb: pilih(r && r.rbb, (v !== null && t) ? v / t : null)
+      };
+    }
+
+    function anggotaKonsolidasi(konsol) {
+      if (konsol === UUS_KP) return [UUS_KP];
+      if (konsol === ENTITAS_UUS) return [...anggotaKonsolidasi(KONSOL_BJM), ...anggotaKonsolidasi(KONSOL_KDG), UUS_KP];
+      const dariData = [...KELOMPOK_UNIT.entries()].filter(([u, k]) => k === konsol).map(([u]) => u);
+      return dariData.length ? dariData : (DEFAULT_ANGGOTA[konsol] || []);
+    }
+
+    /* ======================= PEMUATAN DATA ======================= */
+    function setBadge(teks, isWarning) {
+      const badge = document.getElementById('syncBadge');
+      badge.textContent = teks;
+      badge.classList.toggle('fallback', !!isWarning);
+    }
+
+    function muatData(force) {
+      const page = PAGES[STATE.page];
+      if (!page) return;
+      const dibutuhkan = page.sheets();
+      const diambil = force ? dibutuhkan : dibutuhkan.filter(n => !DATA[n] && !MISSING.has(n));
+
+      if (!diambil.length) {
+        renderHalamanAktif();
+        return;
+      }
+
+      if (typeof google === 'undefined' || !google.script) {
+        setBadge('Mode Lokal: buka lewat URL Web App', true);
+        renderHalamanAktif();
+        return;
+      }
+
+      const btnSync = document.getElementById('btnSync');
+      btnSync.classList.add('spinning');
+      setBadge('Menyinkronkan Sheet...');
+      const nomor = ++permintaanKe;
+
+      google.script.run
+        .withSuccessHandler(function(res) {
+          btnSync.classList.remove('spinning');
+          if (!res || !res.success) {
+            if (res && res.expired) { prosesLogout(res.message); return; }
+            setBadge((res && res.message) || 'Gagal memuat Sheet', true);
+            if (nomor === permintaanKe) renderHalamanAktif();
+            return;
+          }
+          Object.keys(res.sheets).forEach(n => { MISSING.delete(n); simpanSheet(n, res.sheets[n]); });
+          (res.missing || []).forEach(n => MISSING.add(n));
+          STATE.lastUpdated = res.lastUpdated;
+          const infoMissing = res.missing && res.missing.length ? ` • ${res.missing.length} sheet belum ada` : '';
+          setBadge(`Live Sheet • ${res.lastUpdated}${infoMissing}`, !!infoMissing);
+          if (nomor === permintaanKe) renderHalamanAktif();
+        })
+        .withFailureHandler(function(err) {
+          btnSync.classList.remove('spinning');
+          setBadge('Gagal memuat Sheet: ' + (err && err.message ? err.message : err), true);
+          if (nomor === permintaanKe) renderHalamanAktif();
+        })
+        .getDataBundle(STATE.token, diambil, !!force);
+    }
+
+    function sinkronkanDataSheet() {
+      muatData(true);
+    }
+
+    /* ======================= FILTER ======================= */
+    function perbaruiOpsiTanggal(sheetUtama) {
+      const sel = document.getElementById('filterTanggal');
+      const periode = daftarPeriode(sheetUtama).reverse();
+      const lama = sel.value;
+      const kunciBaru = periode.join(',');
+      if (sel.dataset.kunci !== kunciBaru) {
+        sel.innerHTML = periode.map(p => `<option value="${p}">${labelPeriode(p)}</option>`).join('');
+        sel.dataset.kunci = kunciBaru;
+      }
+      if (periode.includes(lama)) sel.value = lama;
+      else if (periode.length) sel.value = periode[0];
+    }
+
+    function perbaruiOpsiUnit() {
+      const konsol = document.getElementById('filterKonsolidasi').value;
+      const sel = document.getElementById('filterUnitKerja');
+      const lama = sel.value;
+      const labelSemua = {
+        [ENTITAS_UUS]: 'Semua Unit Kerja (Konsolidasi UUS)',
+        [KONSOL_BJM]: 'Semua Zonasi KCS Banjarmasin',
+        [KONSOL_KDG]: 'Semua Zonasi KCS Kandangan',
+        [UUS_KP]: 'UUS KP'
+      };
+      const opsi = [{ v: konsol, l: labelSemua[konsol] }];
+      if (konsol !== UUS_KP) anggotaKonsolidasi(konsol).forEach(u => opsi.push({ v: u, l: u }));
+      sel.innerHTML = opsi.map(o => `<option value="${esc(o.v)}">${esc(o.l)}</option>`).join('');
+      if (opsi.some(o => o.v === lama)) sel.value = lama;
+    }
+
+    function onKonsolidasiChange() {
+      perbaruiOpsiUnit();
+      renderHalamanAktif();
+    }
+
+    function terapkanFilter() {
+      renderHalamanAktif();
+    }
+
+    function bangunKonteks(page) {
+      const semua = daftarPeriode(page.primary());
+      const p = document.getElementById('filterTanggal').value || semua[semua.length - 1] || '';
+      const series = document.getElementById('filterSeries').value;
+      const konsol = document.getElementById('filterKonsolidasi').value;
+      const entity = document.getElementById('filterUnitKerja').value || konsol;
+      return {
+        p, series, konsol, entity,
+        label: labelPeriode(p),
+        periods: semua,
+        seriesPeriods: p ? periodeSesuaiSeries(semua, p, series) : [],
+        anggota: anggotaKonsolidasi(konsol),
+        info: `${entity} • ${labelPeriode(p)} • Series ${series}`
+      };
+    }
+
+    function renderHalamanAktif() {
+      const page = PAGES[STATE.page];
+      if (!page) return;
+      perbaruiOpsiTanggal(page.primary());
+      perbaruiOpsiUnit();
+      const ctx = bangunKonteks(page);
+      try {
+        page.render(ctx);
+      } catch (e) {
+        console.error(e);
+        setBadge('Gagal menampilkan halaman: ' + e.message, true);
+      }
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    /* ======================= NAVIGASI ======================= */
+    /** Mencari menu sidebar yang memuat halaman tertentu. */
+    function cariMenu(pageId) {
+      for (const menu of MENU_CONFIG) {
+        const sub = menu.items.find(s => s.page === pageId);
+        if (sub) return { menu, sub };
+      }
+      return null;
+    }
+
+    function bukaHalaman(pageId) {
+      if (!PAGES[pageId]) return;
+      const lokasi = cariMenu(pageId);
+      STATE.page = pageId;
+      STATE.activeMenuId = lokasi ? lokasi.menu.id : 'highlight';
+
+      document.querySelectorAll('.page').forEach(el => el.classList.toggle('active', el.id === 'page-' + pageId));
+      document.getElementById('breadcrumb').textContent = PAGES[pageId].title();
+      perbaruiHighlightSidebar();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      muatData(false);
+    }
+
+    function bukaHalamanHighlight() { bukaHalaman('home'); }
+    function bukaHalamanHlAset() { bukaHalaman('hlaset'); }
+    function bukaHalamanHlDpk() { bukaHalaman('hldpk'); }
+    function bukaHalamanHlPembiayaan() { bukaHalaman('hlpembiayaan'); }
+
+    function klikMenuUtama(menuId) {
+      const sb = document.getElementById('sidebar');
+      if (sb.classList.contains('collapsed')) sb.classList.remove('collapsed');
+
+      if (STATE.activeMenuId === menuId) {
+        document.getElementById('sub-' + menuId).classList.toggle('open');
+        document.getElementById('nav-' + menuId).classList.toggle('open-menu');
+        return;
+      }
+      const menu = MENU_CONFIG.find(m => m.id === menuId);
+      if (menu) bukaHalaman(menu.items[0].page);
+    }
+
+    function bangunSidebar() {
+      const container = document.getElementById('sidebarMenuContainer');
+      container.innerHTML = '';
+
+      MENU_CONFIG.forEach(menu => {
+        const li = document.createElement('li');
+        li.className = 'nav-item';
+        li.id = 'nav-' + menu.id;
+        li.title = menu.title;
+        li.innerHTML = `
+          <div class="nav-item-left">
+            <i data-lucide="${menu.icon}" class="nav-icon"></i>
+            <span class="nav-label">${esc(menu.title)}</span>
+          </div>
+          <i data-lucide="chevron-down" class="chevron-icon"></i>`;
+        li.onclick = () => klikMenuUtama(menu.id);
+        container.appendChild(li);
+
+        const ulSub = document.createElement('ul');
+        ulSub.className = 'submenu-list';
+        ulSub.id = 'sub-' + menu.id;
+        menu.items.forEach(sub => {
+          const liSub = document.createElement('li');
+          liSub.className = 'submenu-item';
+          liSub.id = 'subitem-' + menu.id + '-' + sub.page;
+          liSub.innerHTML = `<span class="submenu-dot"></span><span>${esc(sub.name)}</span>`;
+          liSub.onclick = (e) => { e.stopPropagation(); bukaHalaman(sub.page); };
+          ulSub.appendChild(liSub);
+        });
+        container.appendChild(ulSub);
+      });
+
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    function perbaruiHighlightSidebar() {
+      MENU_CONFIG.forEach(m => {
+        const navEl = document.getElementById('nav-' + m.id);
+        const subUl = document.getElementById('sub-' + m.id);
+        if (!navEl || !subUl) return;
+        const aktif = m.id === STATE.activeMenuId;
+        navEl.classList.toggle('active', aktif);
+        navEl.classList.toggle('open-menu', aktif);
+        subUl.classList.toggle('open', aktif);
+        m.items.forEach(s => {
+          const el = document.getElementById('subitem-' + m.id + '-' + s.page);
+          if (el) el.classList.toggle('active-sub', aktif && s.page === STATE.page);
+        });
+      });
+    }
+
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('collapsed');
+      setTimeout(() => Object.values(CHARTS).forEach(c => c.resize()), 360);
+    }
+
+    /* ======================= KARTU KPI ======================= */
+    /**
+     * Membangun 5 kartu KPI dari elemen <div class="kpi-grid-5" data-kpi="prefix" ...>.
+     * Atribut: data-label (judul kartu utama), data-icon, data-theme (kelas warna).
+     */
+    function inisialisasiKpi() {
+      document.querySelectorAll('[data-kpi]').forEach(el => {
+        const id = el.dataset.kpi;
+        const label = el.dataset.label || 'Nominal';
+        const kartu = (cls, judul, icon, key) => `
+          <div class="kpi-box ${cls}">
+            <div class="kpi-head"><span id="${id}-${key}-lbl">${esc(judul)}</span><i data-lucide="${icon}" style="width:16px;height:16px;"></i></div>
+            <div class="kpi-main-val" id="${id}-${key}">-</div>
+            <div class="kpi-sub-caption" id="${id}-${key}-sub">-</div>
+          </div>`;
+        el.innerHTML =
+          kartu(el.dataset.theme || 'bg-main', label, el.dataset.icon || 'wallet', 'val') +
+          kartu('bg-yoy', 'YoY', 'trending-up', 'yoy') +
+          kartu('bg-ytd', 'Ytd', 'calendar-check', 'ytd') +
+          kartu('bg-mtm', 'Mtm', 'activity', 'mtm') +
+          kartu('bg-rbb', 'RBB/C', 'target', 'rbb');
+      });
+    }
+
+    function setTeks(id, teks) {
+      const el = document.getElementById(id);
+      if (el) el.textContent = teks;
+    }
+
+    function renderKpi(prefix, sheet, ctx, fmt = 'rp') {
+      const k = kinerja(sheet, ctx.entity, ctx.p);
+      const ada = sheetAda(sheet);
+      setTeks(`${prefix}-val`, fmtNilai(k.v, fmt));
+      setTeks(`${prefix}-val-sub`, ada ? `${ctx.entity} (${ctx.label})` : `Sheet "${sheet}" belum tersedia`);
+      setTeks(`${prefix}-yoy`, fmtPct(k.yoy));
+      setTeks(`${prefix}-yoy-sub`, `Tahun lalu: ${fmtNilai(k.vY, fmt)}`);
+      setTeks(`${prefix}-ytd`, fmtPct(k.ytd));
+      setTeks(`${prefix}-ytd-sub`, `Des tahun lalu: ${fmtNilai(k.vD, fmt)}`);
+      setTeks(`${prefix}-mtm`, fmtPct(k.mtm));
+      setTeks(`${prefix}-mtm-sub`, `Bulan lalu: ${fmtNilai(k.vM, fmt)}`);
+      setTeks(`${prefix}-rbb`, fmtPct(k.rbb));
+      setTeks(`${prefix}-rbb-sub`, `Target: ${fmtNilai(k.t, fmt)}`);
+      return k;
+    }
+
+    /* ======================= HELPER CHART ======================= */
+    if (typeof Chart !== 'undefined') {
+      Chart.defaults.font.family = "'Poppins', sans-serif";
+      Chart.defaults.color = '#64748b';
+    }
+
+    function buatChart(canvasId, config) {
+      if (CHARTS[canvasId]) CHARTS[canvasId].destroy();
+      const canvas = document.getElementById(canvasId);
+      if (!canvas || typeof Chart === 'undefined') return null;
+      CHARTS[canvasId] = new Chart(canvas.getContext('2d'), config);
+      return CHARTS[canvasId];
+    }
+
+    /** Menampilkan/menghapus pesan "data belum tersedia" di atas canvas. */
+    function setKosong(canvasId, pesan) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
+      const wrap = canvas.parentElement;
+      let el = wrap.querySelector('.chart-empty');
+      if (!pesan) { if (el) el.remove(); return; }
+      if (!el) {
+        el = document.createElement('div');
+        el.className = 'chart-empty';
+        wrap.appendChild(el);
+      }
+      el.textContent = pesan;
+    }
+
+    function semuaKosong(arr) {
+      return !arr.some(v => v !== null && v !== undefined && v !== 0);
+    }
+
+    function pesanSheetHilang(sheets) {
+      const hilang = sheets.filter(s => !sheetAda(s));
+      return hilang.length ? `Data belum tersedia — tambahkan sheet: ${hilang.join(', ')}` : null;
+    }
+
+    /** Line chart dua sumbu: a = sumbu kiri, b = sumbu kanan (opsional). */
+    function renderTrendGanda(canvasId, ctx, a, b) {
+      const labels = ctx.seriesPeriods.map(labelPeriode);
+      const ds = (cfg, axis) => ({
+        label: cfg.label,
+        data: ctx.seriesPeriods.map(p => nilai(cfg.sheet, ctx.entity, p)),
+        borderColor: cfg.color,
+        backgroundColor: cfg.color + '1f',
+        pointBackgroundColor: '#ffffff',
+        pointBorderColor: cfg.color,
+        pointBorderWidth: 2,
+        pointRadius: 3.5,
+        borderWidth: 2.5,
+        fill: axis === 'y',
+        tension: 0.3,
+        yAxisID: axis,
+        fmt: cfg.fmt || 'rp'
+      });
+      const datasets = [ds(a, 'y')];
+      if (b) datasets.push(ds(b, 'y1'));
+
+      setKosong(canvasId, pesanSheetHilang([a.sheet].concat(b ? [b.sheet] : [])));
+      const scales = {
+        y: { position: 'left', title: { display: true, text: a.label }, ticks: { callback: v => fmtSumbu(v, a.fmt) } }
+      };
+      if (b) scales.y1 = { position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: b.label }, ticks: { callback: v => fmtSumbu(v, b.fmt) } };
+
+      buatChart(canvasId, {
+        type: 'line',
+        data: { labels, datasets },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { position: 'top' },
+            tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ${fmtNilai(c.parsed.y, c.dataset.fmt)}` } }
+          },
+          scales
+        }
+      });
+    }
+
+    /** Bar Aktual vs Target per periode series + garis % RBB/C. */
+    function renderRealisasiTarget(canvasId, sheet, ctx, fmt = 'rp') {
+      const ps = ctx.seriesPeriods;
+      const kin = ps.map(p => kinerja(sheet, ctx.entity, p));
+      setKosong(canvasId, pesanSheetHilang([sheet]));
+      buatChart(canvasId, {
+        type: 'bar',
+        data: {
+          labels: ps.map(labelPeriode),
+          datasets: [
+            { label: 'Aktual', data: kin.map(k => k.v), backgroundColor: WARNA.hijau, borderRadius: 6, order: 2 },
+            { label: 'Target RBB/C', data: kin.map(k => k.t), backgroundColor: WARNA.oranye, borderRadius: 6, order: 3 },
+            { label: '% RBB/C', type: 'line', data: kin.map(k => k.rbb), borderColor: WARNA.biru, backgroundColor: WARNA.biru, yAxisID: 'y1', tension: 0.3, pointRadius: 3, order: 1 }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { position: 'top' },
+            tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ${c.dataset.yAxisID === 'y1' ? fmtPct(c.parsed.y) : fmtNilai(c.parsed.y, fmt)}` } }
+          },
+          scales: {
+            y: { beginAtZero: true, ticks: { callback: v => fmtSumbu(v, fmt) } },
+            y1: { position: 'right', grid: { drawOnChartArea: false }, ticks: { callback: v => fmtPct(v, 0) } }
+          }
+        }
+      });
+    }
+
+    /** Horizontal bar: urutan realisasi nominal unit kerja dalam konsolidasi terpilih. */
+    function renderLeaderboard(canvasId, sheet, ctx, fmt = 'rp') {
+      const items = ctx.anggota
+        .map(u => Object.assign({ unit: u }, kinerja(sheet, u, ctx.p)))
+        .filter(i => i.v !== null)
+        .sort((x, y) => y.v - x.v);
+
+      setKosong(canvasId, pesanSheetHilang([sheet]) || (items.length ? null : 'Tidak ada data unit kerja untuk periode ini'));
+      buatChart(canvasId, {
+        type: 'bar',
+        data: {
+          labels: items.map(i => namaPendek(i.unit)),
+          datasets: [{
+            label: 'Realisasi',
+            data: items.map(i => i.v),
+            backgroundColor: items.map(i => i.unit === ctx.entity ? WARNA.oranye : (i.rbb !== null && i.rbb >= 1 ? WARNA.hijau : WARNA.teal)),
+            borderRadius: 5
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: c => ` ${fmtNilai(c.parsed.x, fmt)}`,
+                afterLabel: c => ` Capaian RBB/C: ${fmtPct(items[c.dataIndex].rbb)}`
+              }
+            }
+          },
+          scales: {
+            x: { beginAtZero: true, ticks: { callback: v => fmtSumbu(v, fmt) } },
+            y: { ticks: { font: { size: 10.5 }, autoSkip: false } }
+          }
+        }
+      });
+    }
+
+    /** Donut komposisi nilai beberapa sheet untuk entitas & periode terpilih. */
+    function renderDonut(canvasId, ctx, parts, fmt = 'rp') {
+      const values = parts.map(pt => nilai(pt.sheet, ctx.entity, ctx.p));
+      const total = values.reduce((s, v) => s + (v || 0), 0);
+      const pesan = pesanSheetHilang(parts.map(pt => pt.sheet)) || (semuaKosong(values) ? 'Data komposisi bernilai 0 / kosong pada periode ini' : null);
+      setKosong(canvasId, pesan);
+      buatChart(canvasId, {
+        type: 'doughnut',
+        data: {
+          labels: parts.map(pt => pt.label),
+          datasets: [{ data: values.map(v => v || 0), backgroundColor: parts.map((pt, i) => pt.color || WARNA.palet[i % WARNA.palet.length]), borderWidth: 2, borderColor: '#ffffff' }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false, cutout: '62%',
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                boxWidth: 10, font: { size: 10.5 },
+                generateLabels: chart => chart.data.labels.map((l, i) => ({
+                  text: `${l}: ${total ? fmtPct(values[i] / total, 1) : '-'}`,
+                  fillStyle: chart.data.datasets[0].backgroundColor[i],
+                  strokeStyle: '#ffffff',
+                  hidden: !chart.getDataVisibility(i),
+                  index: i
+                }))
+              }
+            },
+            tooltip: { callbacks: { label: c => ` ${c.label}: ${fmtNilai(c.parsed, fmt)} (${total ? fmtPct(c.parsed / total, 1) : '-'})` } }
+          }
+        }
+      });
+    }
+
+    /** Bar kecil rasio (persentase) sepanjang periode series. */
+    function renderRasioMini(canvasId, sheet, ctx, badgeId, warna = WARNA.hijau) {
+      const ps = ctx.seriesPeriods;
+      const data = ps.map(p => nilai(sheet, ctx.entity, p));
+      const terakhir = nilai(sheet, ctx.entity, ctx.p);
+      const badge = document.getElementById(badgeId);
+      if (badge) badge.textContent = fmtPct(terakhir);
+      setKosong(canvasId, pesanSheetHilang([sheet]) || (semuaKosong(data) ? 'Data rasio masih kosong / 0 di sheet' : null));
+      buatChart(canvasId, {
+        type: 'bar',
+        data: {
+          labels: ps.map(labelPeriode),
+          datasets: [{ label: sheet, data, backgroundColor: ps.map(p => p === ctx.p ? WARNA.oranye : warna), borderRadius: 4 }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ` ${fmtPct(c.parsed.y)}` } } },
+          scales: {
+            x: { ticks: { font: { size: 9 }, maxRotation: 0, autoSkip: true } },
+            y: { beginAtZero: true, ticks: { font: { size: 9 }, callback: v => fmtPct(v, 0) } }
+          }
+        }
+      });
+    }
+
+    /* ======================= TABEL REALISASI ======================= */
+    /** Daftar baris tabel hierarki sesuai konsolidasi terpilih. */
+    function barisTabelKonsolidasi(konsol) {
+      const grup = g => [{ unit: g, tipe: 'group' }].concat(anggotaKonsolidasi(g).map(u => ({ unit: u, tipe: 'child' })));
+      if (konsol === ENTITAS_UUS) {
+        return grup(KONSOL_BJM).concat(grup(KONSOL_KDG), [{ unit: UUS_KP, tipe: 'group' }, { unit: ENTITAS_UUS, tipe: 'total' }]);
+      }
+      if (konsol === UUS_KP) return [{ unit: UUS_KP, tipe: 'group' }];
+      return grup(konsol);
+    }
+
+    /**
+     * Mengisi tbody tabel realisasi. opsi: { sheet, noaSheet (opsional), fmt }.
+     * Kolom: No | Unit Kerja | Aktual | [NOA] | Target RBB/C | YoY | Ytd | Mtm | % RBB/C
+     */
+    function renderTabelRealisasi(tbodyId, ctx, opsi) {
+      const tbody = document.getElementById(tbodyId);
+      if (!tbody) return;
+      const fmt = opsi.fmt || 'rp';
+      const kolom = opsi.noaSheet ? 9 : 8;
+
+      if (!sheetAda(opsi.sheet)) {
+        tbody.innerHTML = `<tr><td colspan="${kolom}" class="table-empty">Sheet "${esc(opsi.sheet)}" belum tersedia di Spreadsheet.</td></tr>`;
+        return;
+      }
+
+      let no = 0;
+      tbody.innerHTML = barisTabelKonsolidasi(ctx.konsol).map(item => {
+        const k = kinerja(opsi.sheet, item.unit, ctx.p);
+        const cls = ['row-' + item.tipe];
+        if (item.unit === ctx.entity) cls.push('row-selected');
+        const noa = opsi.noaSheet ? `<td class="num-col">${fmtNum(nilai(opsi.noaSheet, item.unit, ctx.p))}</td>` : '';
+        return `
+          <tr class="${cls.join(' ')}">
+            <td>${++no}</td>
+            <td class="${item.tipe === 'child' ? 'indent' : ''}">${esc(item.unit)}</td>
+            <td class="num-col"><strong>${fmtNilai(k.v, fmt)}</strong></td>
+            ${noa}
+            <td class="num-col">${fmtNilai(k.t, fmt)}</td>
+            <td class="num-col">${badgeGrowth(k.yoy)}</td>
+            <td class="num-col">${badgeGrowth(k.ytd)}</td>
+            <td class="num-col">${badgeGrowth(k.mtm)}</td>
+            <td class="num-col"><strong>${fmtPct(k.rbb)}</strong></td>
+          </tr>`;
+      }).join('');
+    }
+
+    /* ======================= HALAMAN INDIKATOR ======================= */
+    /**
+     * Membuat definisi halaman satu indikator (aset.html, giro.html, roa.html, dst).
+     * cfg: { page, metric, sheet, fmt, warna }. ID elemen di HTML memakai awalan cfg.page:
+     * <page>-info, <page>-trend, <page>-target, <page>-leader, <page>-table, <page>-badge-*.
+     */
+    function halamanIndikator(cfg) {
+      const fmt = cfg.fmt || 'rp';
+      const id = cfg.page;
+      return {
+        title: () => {
+          const lokasi = cariMenu(id);
+          const judul = lokasi ? `${lokasi.menu.title} / ${lokasi.sub.name}` : cfg.metric;
+          return `${judul.toUpperCase()} (SHEET: ${cfg.sheet})`;
+        },
+        primary: () => cfg.sheet,
+        sheets: () => [cfg.sheet],
+
+        render(ctx) {
+          setTeks(`${id}-info`, ctx.info);
+          renderKpi(id, cfg.sheet, ctx, fmt);
+
+          setTeks(`${id}-badge-trend`, `Series: ${ctx.series}`);
+          renderTrendGanda(`${id}-trend`, ctx, { sheet: cfg.sheet, label: cfg.metric, color: cfg.warna || WARNA.hijau, fmt });
+
+          setTeks(`${id}-badge-target`, `Series: ${ctx.series}`);
+          renderRealisasiTarget(`${id}-target`, cfg.sheet, ctx, fmt);
+          renderLeaderboard(`${id}-leader`, cfg.sheet, ctx, fmt);
+
+          setTeks(`${id}-badge-table`, `Periode: ${ctx.label}`);
+          renderTabelRealisasi(`${id}-table`, ctx, { sheet: cfg.sheet, fmt });
+        }
+      };
+    }
+
+    /* ======================= SESI ======================= */
+    function bukaDashboard(userData) {
+      STATE.token = userData.token;
+      setTeks('userName', userData.nama);
+      setTeks('userRole', userData.role);
+      setTeks('userInisial', userData.inisial);
+
+      document.getElementById('login-page').style.display = 'none';
+      document.getElementById('dashboard-page').style.display = 'block';
+
+      inisialisasiKpi();
+      bangunSidebar();
+      perbaruiOpsiUnit();
+      bukaHalamanHighlight();
+      mulaiTimerSesi(userData.expiresIn || 3600);
+
+      clearInterval(autoSyncInterval);
+      autoSyncInterval = setInterval(() => muatData(true), 5 * 60 * 1000);
+    }
+
+    function prosesLogout(pesan) {
+      clearInterval(countdownInterval);
+      clearInterval(autoSyncInterval);
+      if (STATE.token && typeof google !== 'undefined' && google.script) google.script.run.logout(STATE.token);
+      STATE.token = null;
+      Object.keys(DATA).forEach(k => { delete DATA[k]; delete DATA_IDX[k]; });
+      MISSING.clear();
+
+      document.getElementById('dashboard-page').style.display = 'none';
+      document.getElementById('login-page').style.display = 'flex';
+      document.getElementById('password').value = '';
+      const err = document.getElementById('loginError');
+      if (typeof pesan === 'string' && pesan) {
+        err.textContent = pesan;
+        err.style.display = 'block';
+      } else {
+        err.style.display = 'none';
+      }
+    }
+
+    function mulaiTimerSesi(durasiDetik) {
+      clearInterval(countdownInterval);
+      let sisa = durasiDetik;
+      const el = document.getElementById('timer');
+      const tampil = () => {
+        const m = Math.floor(sisa / 60), d = sisa % 60;
+        el.textContent = (m < 10 ? '0' + m : m) + ':' + (d < 10 ? '0' + d : d);
+      };
+      tampil();
+      countdownInterval = setInterval(() => {
+        sisa--;
+        if (sisa < 0) { prosesLogout('Sesi berakhir, silakan login kembali.'); return; }
+        tampil();
+      }, 1000);
+    }
+  </script>
 
   <!-- ================= TAMPILAN LOGIN ================= -->
   <?!= include('login'); ?>
@@ -67,18 +1863,170 @@
           <div class="filter-card"><label for="filterUnitKerja"><i data-lucide="map-pin" style="width:13px;height:13px;"></i> Unit Kerja</label><select id="filterUnitKerja" onchange="terapkanFilter()"></select></div>
         </div>
 
-        <!-- ================= HALAMAN ================= -->
-        <?!= include('home'); ?>
+        <!-- ================= HALAMAN: RINGKASAN EKSEKUTIF ================= -->
+        <div id="page-home" class="page">
+          <div class="highlight-banner">
+            <h2><i data-lucide="sparkles" style="width: 18px; color: var(--primary-green);"></i><span>HIGHLIGHT KINERJA UTAMA</span></h2>
+            <span class="hint">Klik salah satu kartu untuk membuka halaman highlight-nya</span>
+          </div>
+
+          <div class="highlight-grid-3">
+            <div class="hl-card card-aset" onclick="bukaHalamanHlAset()">
+              <div>
+                <div class="hl-card-top">
+                  <div><div class="hl-card-title">ASET & LABA</div><div style="font-size: 11px; opacity: 0.8;" id="home-sub-aset">-</div></div>
+                  <div class="hl-card-icon"><i data-lucide="trending-up" style="color: #fff;"></i></div>
+                </div>
+                <div class="hl-metrics-row">
+                  <div class="hl-metric-item"><span class="lbl">Total Aset</span><span class="val" id="home-val-aset">-</span></div>
+                  <div class="hl-metric-item"><span class="lbl">Laba</span><span class="val" id="home-val-laba">-</span></div>
+                </div>
+              </div>
+              <div class="hl-card-footer">
+                <span id="home-rbb-aset">RBB/C Aset: -</span>
+                <span class="goto-btn">Buka Aset & Laba <i data-lucide="arrow-right" style="width: 13px;"></i></span>
+              </div>
+            </div>
+
+            <div class="hl-card card-dpk" onclick="bukaHalamanHlDpk()">
+              <div>
+                <div class="hl-card-top">
+                  <div><div class="hl-card-title">DANA PIHAK KETIGA (DPK)</div><div style="font-size: 11px; opacity: 0.8;" id="home-sub-dpk">-</div></div>
+                  <div class="hl-card-icon"><i data-lucide="wallet" style="color: #fff;"></i></div>
+                </div>
+                <div class="hl-metrics-row">
+                  <div class="hl-metric-item"><span class="lbl">Nominal DPK</span><span class="val" id="home-val-dpk">-</span></div>
+                  <div class="hl-metric-item"><span class="lbl">NOA DPK</span><span class="val" id="home-noa-dpk">-</span></div>
+                </div>
+              </div>
+              <div class="hl-card-footer">
+                <span id="home-rbb-dpk">RBB/C DPK: -</span>
+                <span class="goto-btn">Buka DPK <i data-lucide="arrow-right" style="width: 13px;"></i></span>
+              </div>
+            </div>
+
+            <div class="hl-card card-pby" onclick="bukaHalamanHlPembiayaan()">
+              <div>
+                <div class="hl-card-top">
+                  <div><div class="hl-card-title">PEMBIAYAAN</div><div style="font-size: 11px; opacity: 0.8;" id="home-sub-pby">-</div></div>
+                  <div class="hl-card-icon"><i data-lucide="hand-coins" style="color: #fff;"></i></div>
+                </div>
+                <div class="hl-metrics-row">
+                  <div class="hl-metric-item"><span class="lbl">Nominal Pembiayaan</span><span class="val" id="home-val-pby">-</span></div>
+                  <div class="hl-metric-item"><span class="lbl">NOA Pembiayaan</span><span class="val" id="home-noa-pby">-</span></div>
+                </div>
+              </div>
+              <div class="hl-card-footer">
+                <span id="home-rbb-pby">RBB/C Pembiayaan: -</span>
+                <span class="goto-btn">Buka Pembiayaan <i data-lucide="arrow-right" style="width: 13px;"></i></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <h3><i data-lucide="bar-chart-2" style="width:18px;height:18px;color:var(--primary-green);"></i><span>Tren Ringkasan: Aset, DPK & Pembiayaan</span></h3>
+              <span class="chart-badge" id="home-badge-trend">-</span>
+            </div>
+            <div class="canvas-line-wrap" style="height: 300px;"><canvas id="homeOverviewChart"></canvas></div>
+          </div>
+        </div>
+
+        <!-- ================= HALAMAN MENU LAIN (satu file per halaman) ================= -->
+        <!-- Highlight Kinerja -->
         <?!= include('hlaset'); ?>
         <?!= include('hldpk'); ?>
         <?!= include('hlpembiayaan'); ?>
+        <!-- Aset & Laba -->
         <?!= include('aset'); ?>
+        <?!= include('laba'); ?>
+        <?!= include('pendopr'); ?>
+        <?!= include('byopr'); ?>
+        <?!= include('penydana'); ?>
+        <?!= include('bybaghas'); ?>
+        <?!= include('fbi'); ?>
+        <!-- Dana Pihak Ketiga -->
+        <?!= include('dpk'); ?>
+        <?!= include('giro'); ?>
+        <?!= include('tabungan'); ?>
+        <?!= include('deposito'); ?>
+        <?!= include('noadpk'); ?>
+        <!-- Pembiayaan -->
+        <?!= include('pembiayaan'); ?>
+        <?!= include('korporate'); ?>
+        <?!= include('umkm'); ?>
+        <?!= include('konsumer'); ?>
+        <?!= include('modalkerja'); ?>
+        <?!= include('investasi'); ?>
+        <?!= include('noapby'); ?>
+        <?!= include('ekskur'); ?>
+        <?!= include('poskur'); ?>
+        <?!= include('eksflpp'); ?>
+        <?!= include('posflpp'); ?>
+        <!-- Rasio -->
+        <?!= include('roa'); ?>
+        <?!= include('ni'); ?>
+        <?!= include('fdr'); ?>
+        <?!= include('bopo'); ?>
+        <?!= include('npf'); ?>
+        <?!= include('casa'); ?>
+        <?!= include('far'); ?>
+        <?!= include('pctfbi'); ?>
+        <?!= include('pctumkm'); ?>
 
       </main>
     </div>
   </div>
 
   <script>
+    // Halaman Ringkasan Eksekutif
+    PAGES.home = {
+      title: () => 'HIGHLIGHT KINERJA / RINGKASAN EKSEKUTIF',
+      primary: () => 'Aset 1',
+      sheets: () => ['Aset 1', 'Laba 1', 'DPK 1', 'NOA DPK 1', 'Pby 1', 'NOA Pby 1'],
+
+      render(ctx) {
+        const sub = `${ctx.entity} (${ctx.label})`;
+        ['aset', 'dpk', 'pby'].forEach(k => setTeks(`home-sub-${k}`, sub));
+
+        const aset = kinerja('Aset 1', ctx.entity, ctx.p);
+        const dpk = kinerja('DPK 1', ctx.entity, ctx.p);
+        const pby = kinerja('Pby 1', ctx.entity, ctx.p);
+
+        setTeks('home-val-aset', fmtRp(aset.v));
+        setTeks('home-val-laba', fmtRp(nilai('Laba 1', ctx.entity, ctx.p)));
+        setTeks('home-rbb-aset', `RBB/C Aset: ${fmtPct(aset.rbb)} • YoY ${fmtPct(aset.yoy)}`);
+
+        setTeks('home-val-dpk', fmtRp(dpk.v));
+        setTeks('home-noa-dpk', fmtNum(nilai('NOA DPK 1', ctx.entity, ctx.p)));
+        setTeks('home-rbb-dpk', `RBB/C DPK: ${fmtPct(dpk.rbb)} • YoY ${fmtPct(dpk.yoy)}`);
+
+        setTeks('home-val-pby', fmtRp(pby.v));
+        setTeks('home-noa-pby', fmtNum(nilai('NOA Pby 1', ctx.entity, ctx.p)));
+        setTeks('home-rbb-pby', `RBB/C Pembiayaan: ${fmtPct(pby.rbb)} • YoY ${fmtPct(pby.yoy)}`);
+
+        setTeks('home-badge-trend', ctx.info);
+        const garis = (sheet, label, warna) => ({
+          label,
+          data: ctx.seriesPeriods.map(p => nilai(sheet, ctx.entity, p)),
+          borderColor: warna, backgroundColor: warna, borderWidth: 2.5, tension: 0.3, pointRadius: 3
+        });
+        buatChart('homeOverviewChart', {
+          type: 'line',
+          data: {
+            labels: ctx.seriesPeriods.map(labelPeriode),
+            datasets: [garis('Aset 1', 'Aset', WARNA.hijau), garis('DPK 1', 'DPK', WARNA.teal), garis('Pby 1', 'Pembiayaan', WARNA.ungu)]
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: { legend: { position: 'top' }, tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ${fmtRp(c.parsed.y)}` } } },
+            scales: { y: { ticks: { callback: v => fmtSumbu(v, 'rp') } } }
+          }
+        });
+      }
+    };
+
     if (typeof lucide !== 'undefined') lucide.createIcons();
   </script>
 </body>

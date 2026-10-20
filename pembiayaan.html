@@ -1,0 +1,66 @@
+<!-- ================= FILE: pembiayaan.html — Pembiayaan / Total Pembiayaan =================
+     Sumber data: sheet "Pby 1".
+     Layout: 5 KPI • Trend • Realisasi terhadap Target • Leaderboard Unit Kerja • Tabel Realisasi. -->
+<style>
+  /* Warna aksen halaman (tag judul, ikon judul kartu) */
+  #page-pembiayaan { --accent: #6343c6; }
+</style>
+
+<div id="page-pembiayaan" class="page">
+  <div class="page-head">
+    <div class="page-head-left">
+      <span class="page-tag">PEMBIAYAAN: TOTAL PEMBIAYAAN</span>
+      <span class="page-sub-info" id="pembiayaan-info">-</span>
+    </div>
+    <button class="btn-back-highlight" onclick="bukaHalamanHighlight()">
+      <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i><span>Kembali ke Ringkasan</span>
+    </button>
+  </div>
+
+  <!-- KPI -->
+  <div class="kpi-grid-5" data-kpi="pembiayaan" data-label="Nom Pembiayaan" data-icon="hand-coins" data-theme="bg-main"></div>
+
+  <!-- TREND -->
+  <div class="chart-card">
+    <div class="chart-card-header">
+      <h3><i data-lucide="line-chart" style="width:18px;height:18px;color:var(--accent);"></i><span>Trend Pembiayaan</span></h3>
+      <span class="chart-badge" id="pembiayaan-badge-trend">-</span>
+    </div>
+    <div class="canvas-line-wrap"><canvas id="pembiayaan-trend"></canvas></div>
+  </div>
+
+  <!-- REALISASI & LEADERBOARD -->
+  <div class="middle-charts-grid">
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <h3><i data-lucide="bar-chart-3" style="width:18px;height:18px;color:var(--accent);"></i><span>Realisasi terhadap Target Pembiayaan</span></h3>
+        <span class="chart-badge" id="pembiayaan-badge-target">-</span>
+      </div>
+      <div class="canvas-mid-wrap"><canvas id="pembiayaan-target"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <h3><i data-lucide="award" style="width:18px;height:18px;color:var(--accent);"></i><span>Leaderboard Realisasi Unit Kerja</span></h3>
+      </div>
+      <div class="canvas-mid-wrap"><canvas id="pembiayaan-leader"></canvas></div>
+    </div>
+  </div>
+
+  <!-- TABEL -->
+  <div class="table-card">
+    <div class="chart-card-header">
+      <h3><i data-lucide="table" style="width:18px;height:18px;color:var(--accent);"></i><span>Tabel Realisasi Pembiayaan per Konsolidasi / per Unit Kerja</span></h3>
+      <span class="chart-badge" id="pembiayaan-badge-table">-</span>
+    </div>
+    <div class="table-responsive">
+      <table class="realisasi-table">
+        <thead><tr><th>No</th><th>Unit Kerja</th><th class="num-col">Data Aktual</th><th class="num-col">Target RBB/C</th><th class="num-col">YoY</th><th class="num-col">Ytd</th><th class="num-col">Mtm</th><th class="num-col">% RBB/C</th></tr></thead>
+        <tbody id="pembiayaan-table"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  PAGES.pembiayaan = halamanIndikator({ page: 'pembiayaan', metric: 'Pembiayaan', sheet: 'Pby 1', fmt: 'rp', warna: WARNA.ungu });
+</script>
