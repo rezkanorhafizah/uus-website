@@ -13,6 +13,13 @@ dalam file halaman itu (`<style>` / `<script>`), tidak ada lagi `css.html` / `ap
 | `Kode.gs` | Backend: `doGet`, login + token sesi, pembaca sheet (`getDataBundle`), cache |
 | `Index.html` | Kerangka (sidebar, topbar, filter), CSS & logika bersama (menu, filter, navigasi, helper chart & tabel), halaman **Ringkasan Eksekutif**, dan `include()` semua halaman lain |
 | `login.html` | Halaman login |
+| `filter.html` | Filter utama untuk semua halaman: Tanggal Data, Tahun (checkbox), Series Data, Konsolidasi Cabang, Unit Kerja |
+
+### Filter
+- **Tanggal Data**: posisi bulan untuk KPI, leaderboard, dan tabel.
+- **Tahun** (checkbox, bisa pilih beberapa): tahun yang ditampilkan di grafik trend / realisasi. Minimal satu tahun harus dicentang.
+- **Series Data**: `Triwulanan` (TW I–IV, akhir Mar/Jun/Sep/Des), `Semester` (Smt I–II, akhir Jun/Des), `Tahunan` (akhir Des).
+  Posisi bulan pada Tanggal Data selalu ikut sebagai titik terakhir, mis. `Agt 2026` bila belum akhir triwulan.
 
 | Menu | File | Sheet |
 |---|---|---|
@@ -38,7 +45,7 @@ PAGES.giro = halamanIndikator({ page: 'giro', metric: 'Giro', sheet: 'Gir 1', fm
 ## Cara Pasang
 
 1. Unggah `Data_Mentah.xlsx` ke Google Drive → buka dengan Google Spreadsheet (File → Simpan sebagai Google Spreadsheet).
-2. Di Spreadsheet: **Ekstensi → Apps Script**. Buat file dengan nama persis seperti tabel di atas (37 file HTML)
+2. Di Spreadsheet: **Ekstensi → Apps Script**. Buat file dengan nama persis seperti tabel di atas (38 file HTML)
    (`Kode.gs` sebagai *Script*, sisanya sebagai *HTML*, tanpa ekstensi `.html` saat memberi nama), lalu salin isinya.
    - Bila script dibuat terpisah (standalone), isi `CONFIG.SPREADSHEET_ID` di `Kode.gs`.
 3. **Terapkan → Deployment baru → Aplikasi web**. Jalankan sebagai: *Saya*; Akses: sesuai kebutuhan.

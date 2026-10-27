@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <!-- ================= FILE: Index.html =================
      Kerangka dashboard + halaman RINGKASAN EKSEKUTIF (Highlight Kinerja Utama).
-     Berisi: stylesheet bersama (layout, sidebar, topbar, filter, kartu, chart, tabel),
-     logika inti (menu, state, pemuatan data, filter, navigasi, helper chart & tabel),
+     Berisi: stylesheet bersama (layout, sidebar, topbar, kartu, chart, tabel),
+     logika inti (menu, state, pemuatan data, navigasi, helper chart & tabel),
+     filter utama dimuat dari filter.html,
      lalu memuat setiap halaman menu lewat include(). Setiap file halaman membawa
      <style> dan <script> miliknya sendiri dan mendaftarkan diri ke objek PAGES. -->
 <html lang="id">
@@ -486,44 +487,6 @@
       color: #dc2626;
     }
 
-    /* ================= FILTER UTAMA ================= */
-    .filter-grid-4 {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 14px;
-    }
-
-    .filter-card {
-      background-color: #ffffff;
-      padding: 12px 16px;
-      border-radius: 14px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
-      border: 1px solid rgba(10, 115, 64, 0.08);
-    }
-
-    .filter-card label {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 10px;
-      font-weight: 700;
-      color: var(--primary-green);
-      margin-bottom: 5px;
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
-    }
-
-    .filter-card select {
-      width: 100%;
-      border: none;
-      outline: none;
-      font-size: 13px;
-      font-weight: 600;
-      color: #1e293b;
-      background: transparent;
-      cursor: pointer;
-    }
-
     /* ================= HALAMAN RINGKASAN EKSEKUTIF (Index) ================= */
 
     .highlight-banner {
@@ -959,7 +922,6 @@
       .sidebar { width: 100%; position: static; max-height: none; padding: 16px 0; }
       .sidebar.collapsed { width: 100%; }
       .sidebar.collapsed .nav-scroll { display: none; }
-      .filter-grid-4,
       .kpi-grid-5,
       .grid-3 { grid-template-columns: 1fr; }
       .topbar { padding: 12px 14px; }
@@ -1132,13 +1094,6 @@
       return [...new Set((DATA[sheet] || []).map(r => r.p))].sort();
     }
 
-    function periodeSesuaiSeries(semua, pTerpilih, series) {
-      const sampai = semua.filter(p => p <= pTerpilih);
-      if (series === 'Triwulanan') return sampai.filter(p => ['03', '06', '09', '12'].includes(p.slice(5)) || p === pTerpilih);
-      if (series === 'Tahunan') return sampai.filter(p => p.slice(5) === '12' || p === pTerpilih);
-      return sampai;
-    }
-
     /* ======================= AKSES DATA ======================= */
     function simpanSheet(nama, rows) {
       DATA[nama] = rows;
@@ -1253,66 +1208,10 @@
       muatData(true);
     }
 
-    /* ======================= FILTER ======================= */
-    function perbaruiOpsiTanggal(sheetUtama) {
-      const sel = document.getElementById('filterTanggal');
-      const periode = daftarPeriode(sheetUtama).reverse();
-      const lama = sel.value;
-      const kunciBaru = periode.join(',');
-      if (sel.dataset.kunci !== kunciBaru) {
-        sel.innerHTML = periode.map(p => `<option value="${p}">${labelPeriode(p)}</option>`).join('');
-        sel.dataset.kunci = kunciBaru;
-      }
-      if (periode.includes(lama)) sel.value = lama;
-      else if (periode.length) sel.value = periode[0];
-    }
-
-    function perbaruiOpsiUnit() {
-      const konsol = document.getElementById('filterKonsolidasi').value;
-      const sel = document.getElementById('filterUnitKerja');
-      const lama = sel.value;
-      const labelSemua = {
-        [ENTITAS_UUS]: 'Semua Unit Kerja (Konsolidasi UUS)',
-        [KONSOL_BJM]: 'Semua Zonasi KCS Banjarmasin',
-        [KONSOL_KDG]: 'Semua Zonasi KCS Kandangan',
-        [UUS_KP]: 'UUS KP'
-      };
-      const opsi = [{ v: konsol, l: labelSemua[konsol] }];
-      if (konsol !== UUS_KP) anggotaKonsolidasi(konsol).forEach(u => opsi.push({ v: u, l: u }));
-      sel.innerHTML = opsi.map(o => `<option value="${esc(o.v)}">${esc(o.l)}</option>`).join('');
-      if (opsi.some(o => o.v === lama)) sel.value = lama;
-    }
-
-    function onKonsolidasiChange() {
-      perbaruiOpsiUnit();
-      renderHalamanAktif();
-    }
-
-    function terapkanFilter() {
-      renderHalamanAktif();
-    }
-
-    function bangunKonteks(page) {
-      const semua = daftarPeriode(page.primary());
-      const p = document.getElementById('filterTanggal').value || semua[semua.length - 1] || '';
-      const series = document.getElementById('filterSeries').value;
-      const konsol = document.getElementById('filterKonsolidasi').value;
-      const entity = document.getElementById('filterUnitKerja').value || konsol;
-      return {
-        p, series, konsol, entity,
-        label: labelPeriode(p),
-        periods: semua,
-        seriesPeriods: p ? periodeSesuaiSeries(semua, p, series) : [],
-        anggota: anggotaKonsolidasi(konsol),
-        info: `${entity} • ${labelPeriode(p)} • Series ${series}`
-      };
-    }
-
     function renderHalamanAktif() {
       const page = PAGES[STATE.page];
       if (!page) return;
-      perbaruiOpsiTanggal(page.primary());
-      perbaruiOpsiUnit();
+      perbaruiOpsiFilter(page.primary()); // filter.html
       const ctx = bangunKonteks(page);
       try {
         page.render(ctx);
@@ -1505,7 +1404,7 @@
 
     /** Line chart dua sumbu: a = sumbu kiri, b = sumbu kanan (opsional). */
     function renderTrendGanda(canvasId, ctx, a, b) {
-      const labels = ctx.seriesPeriods.map(labelPeriode);
+      const labels = ctx.seriesLabels;
       const ds = (cfg, axis) => ({
         label: cfg.label,
         data: ctx.seriesPeriods.map(p => nilai(cfg.sheet, ctx.entity, p)),
@@ -1553,7 +1452,7 @@
       buatChart(canvasId, {
         type: 'bar',
         data: {
-          labels: ps.map(labelPeriode),
+          labels: ctx.seriesLabels,
           datasets: [
             { label: 'Aktual', data: kin.map(k => k.v), backgroundColor: WARNA.hijau, borderRadius: 6, order: 2 },
             { label: 'Target RBB/C', data: kin.map(k => k.t), backgroundColor: WARNA.oranye, borderRadius: 6, order: 3 },
@@ -1659,7 +1558,7 @@
       buatChart(canvasId, {
         type: 'bar',
         data: {
-          labels: ps.map(labelPeriode),
+          labels: ctx.seriesLabels,
           datasets: [{ label: sheet, data, backgroundColor: ps.map(p => p === ctx.p ? WARNA.oranye : warna), borderRadius: 4 }]
         },
         options: {
@@ -1855,13 +1754,8 @@
           </div>
         </header>
 
-        <!-- 4 FILTER UTAMA (berlaku untuk semua halaman) -->
-        <div class="filter-grid-4">
-          <div class="filter-card"><label for="filterTanggal"><i data-lucide="calendar" style="width:13px;height:13px;"></i> Tanggal Data</label><select id="filterTanggal" onchange="terapkanFilter()"></select></div>
-          <div class="filter-card"><label for="filterSeries"><i data-lucide="layers" style="width:13px;height:13px;"></i> Series Data</label><select id="filterSeries" onchange="terapkanFilter()"><option value="Bulanan" selected>Bulanan</option><option value="Triwulanan">Triwulanan</option><option value="Tahunan">Tahunan</option></select></div>
-          <div class="filter-card"><label for="filterKonsolidasi"><i data-lucide="building-2" style="width:13px;height:13px;"></i> Konsolidasi Cabang</label><select id="filterKonsolidasi" onchange="onKonsolidasiChange()"><option value="Unit Usaha Syariah">Unit Usaha Syariah</option><option value="KCS Banjarmasin Konsolidasi">Konsolidasi KCS Banjarmasin</option><option value="KCS Kandangan Konsolidasi">Konsolidasi KCS Kandangan</option><option value="UUS KP">UUS KP</option></select></div>
-          <div class="filter-card"><label for="filterUnitKerja"><i data-lucide="map-pin" style="width:13px;height:13px;"></i> Unit Kerja</label><select id="filterUnitKerja" onchange="terapkanFilter()"></select></div>
-        </div>
+        <!-- FILTER UTAMA (berlaku untuk semua halaman) -->
+        <?!= include('filter'); ?>
 
         <!-- ================= HALAMAN: RINGKASAN EKSEKUTIF ================= -->
         <div id="page-home" class="page">
@@ -2014,7 +1908,7 @@
         buatChart('homeOverviewChart', {
           type: 'line',
           data: {
-            labels: ctx.seriesPeriods.map(labelPeriode),
+            labels: ctx.seriesLabels,
             datasets: [garis('Aset 1', 'Aset', WARNA.hijau), garis('DPK 1', 'DPK', WARNA.teal), garis('Pby 1', 'Pembiayaan', WARNA.ungu)]
           },
           options: {
