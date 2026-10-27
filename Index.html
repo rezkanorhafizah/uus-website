@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <!-- ================= FILE: Index.html =================
      Kerangka dashboard + halaman RINGKASAN EKSEKUTIF (Highlight Kinerja Utama).
-     Berisi: stylesheet bersama (layout, sidebar, topbar, kartu, chart, tabel),
-     logika inti (menu, state, pemuatan data, navigasi, helper chart & tabel),
-     filter utama dimuat dari filter.html,
+     Berisi: stylesheet bersama (layout, topbar, kartu, chart, tabel),
+     logika inti (state, pemuatan data, pindah halaman, helper chart & tabel).
+     Sidebar/menu dimuat dari navigation.html, filter utama dari filter.html,
      lalu memuat setiap halaman menu lewat include(). Setiap file halaman membawa
      <style> dan <script> miliknya sendiri dan mendaftarkan diri ke objek PAGES. -->
 <html lang="id">
@@ -31,8 +31,6 @@
       --card-blue: #1d4ed8;
       --text-dark: #1e293b;
       --text-muted: #64748b;
-      --sidebar-width: 275px;
-      --sidebar-collapsed-width: 80px;
     }
 
     * {
@@ -60,258 +58,6 @@
       width: 100%;
       min-height: calc(100vh - 28px);
       gap: 20px;
-    }
-
-    /* ================= SIDEBAR MODERN ================= */
-    .sidebar {
-      width: var(--sidebar-width);
-      background: linear-gradient(165deg, #0b7a44 0%, #075931 100%);
-      border-radius: 24px;
-      color: #ffffff;
-      padding: 24px 0;
-      display: flex;
-      flex-direction: column;
-      flex-shrink: 0;
-      max-height: calc(100vh - 28px);
-      position: sticky;
-      top: 14px;
-      box-shadow: 0 12px 30px rgba(7, 89, 49, 0.22);
-      transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-      z-index: 50;
-    }
-
-    .sidebar.collapsed {
-      width: var(--sidebar-collapsed-width);
-    }
-
-    .sidebar-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0 20px 0 22px;
-      margin-bottom: 24px;
-      min-height: 48px;
-    }
-
-    .brand-wrapper {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      overflow: hidden;
-      white-space: nowrap;
-    }
-
-    .brand-icon {
-      width: 38px;
-      height: 38px;
-      background: rgba(255, 255, 255, 0.16);
-      border: 1px solid rgba(255, 255, 255, 0.25);
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-
-    .brand-text h2 {
-      font-size: 16.5px;
-      font-weight: 700;
-      line-height: 1.25;
-    }
-
-    .sidebar.collapsed .brand-wrapper {
-      display: none;
-    }
-
-    .sidebar.collapsed .sidebar-header {
-      justify-content: center;
-      padding: 0;
-    }
-
-    .btn-collapse {
-      background: rgba(255, 255, 255, 0.15);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      color: white;
-      width: 36px;
-      height: 36px;
-      border-radius: 11px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      transition: all 0.25s ease;
-    }
-
-    .btn-collapse:hover {
-      background: rgba(255, 255, 255, 0.28);
-    }
-
-    .btn-collapse svg {
-      width: 18px;
-      height: 18px;
-      transition: transform 0.35s ease;
-    }
-
-    .sidebar.collapsed .btn-collapse svg {
-      transform: rotate(180deg);
-    }
-
-    .menu-caption {
-      font-size: 10.5px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: rgba(255, 255, 255, 0.55);
-      padding: 0 24px;
-      margin-bottom: 10px;
-      white-space: nowrap;
-      overflow: hidden;
-    }
-
-    .sidebar.collapsed .menu-caption {
-      opacity: 0;
-      height: 0;
-      margin: 0;
-    }
-
-    .nav-scroll {
-      overflow-y: auto;
-      overflow-x: hidden;
-      flex: 1;
-      padding-bottom: 16px;
-    }
-
-    .nav-scroll::-webkit-scrollbar {
-      width: 4px;
-    }
-    .nav-scroll::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.22);
-      border-radius: 4px;
-    }
-
-    .nav-list {
-      list-style: none;
-    }
-
-    .nav-item {
-      padding: 12px 18px;
-      margin-left: 14px;
-      border-radius: 28px 0 0 28px;
-      font-size: 12.5px;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      transition: all 0.25s ease;
-      text-transform: uppercase;
-      margin-bottom: 4px;
-      color: rgba(255, 255, 255, 0.9);
-    }
-
-    .nav-item-left {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      white-space: nowrap;
-      overflow: hidden;
-    }
-
-    .nav-icon {
-      width: 20px;
-      height: 20px;
-      flex-shrink: 0;
-    }
-
-    .nav-item.active {
-      background-color: var(--bg-light);
-      color: var(--primary-green);
-      font-weight: 700;
-      box-shadow: -4px 4px 12px rgba(0, 0, 0, 0.06);
-    }
-
-    .nav-item:not(.active):hover {
-      background-color: rgba(255, 255, 255, 0.1);
-      color: #ffffff;
-    }
-
-    .chevron-icon {
-      width: 16px;
-      height: 16px;
-      flex-shrink: 0;
-      transition: transform 0.3s ease;
-      opacity: 0.8;
-    }
-
-    .nav-item.open-menu .chevron-icon {
-      transform: rotate(180deg);
-    }
-
-    .sidebar.collapsed .nav-item {
-      margin: 6px 12px;
-      padding: 13px 0;
-      border-radius: 14px;
-      justify-content: center;
-    }
-
-    .sidebar.collapsed .nav-label,
-    .sidebar.collapsed .chevron-icon,
-    .sidebar.collapsed .submenu-list {
-      display: none !important;
-    }
-
-    .submenu-list {
-      list-style: none;
-      margin: 2px 14px 10px 31px;
-      padding-left: 14px;
-      border-left: 1.5px solid rgba(255, 255, 255, 0.22);
-      display: none;
-    }
-
-    .submenu-list.open {
-      display: block;
-    }
-
-    .submenu-item {
-      padding: 8px 12px;
-      font-size: 11.5px;
-      color: rgba(255, 255, 255, 0.78);
-      cursor: pointer;
-      line-height: 1.35;
-      border-radius: 9px;
-      transition: all 0.2s;
-      text-transform: uppercase;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 2px;
-    }
-
-    .submenu-dot {
-      width: 5px;
-      height: 5px;
-      border-radius: 50%;
-      background-color: rgba(255, 255, 255, 0.45);
-      flex-shrink: 0;
-    }
-
-    .submenu-item:hover {
-      color: #ffffff;
-      background-color: rgba(255, 255, 255, 0.1);
-      padding-left: 15px;
-    }
-
-    .submenu-item.active-sub {
-      color: #ffffff;
-      font-weight: 700;
-      background-color: rgba(255, 255, 255, 0.18);
-    }
-
-    .submenu-item.active-sub .submenu-dot {
-      background-color: #4ade80;
-      transform: scale(1.4);
-      box-shadow: 0 0 6px #4ade80;
     }
 
     /* ================= AREA UTAMA ================= */
@@ -919,9 +665,6 @@
     @media (max-width: 760px) {
       #dashboard-page { padding: 8px; }
       .app-layout { flex-direction: column; gap: 12px; }
-      .sidebar { width: 100%; position: static; max-height: none; padding: 16px 0; }
-      .sidebar.collapsed { width: 100%; }
-      .sidebar.collapsed .nav-scroll { display: none; }
       .kpi-grid-5,
       .grid-3 { grid-template-columns: 1fr; }
       .topbar { padding: 12px 14px; }
@@ -954,71 +697,7 @@
     const NAMA_BULAN = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'];
 
     // fmt: 'rp' = nominal Rupiah, 'num' = jumlah rekening (NOA), 'pct' = rasio
-    // Urutan sidebar. "page" = id halaman = nama file HTML-nya (mis. page: 'giro' -> giro.html).
-    // Ringkasan Eksekutif (page: 'home') ada di Index.html.
-    const MENU_CONFIG = [
-      {
-        id: 'highlight', title: 'Highlight Kinerja', icon: 'sparkles',
-        items: [
-          { name: 'Ringkasan Eksekutif', page: 'home' },
-          { name: 'Aset & Laba', page: 'hlaset' },
-          { name: 'DPK', page: 'hldpk' },
-          { name: 'Pembiayaan', page: 'hlpembiayaan' }
-        ]
-      },
-      {
-        id: 'aset_laba', title: 'Aset & Laba', icon: 'trending-up',
-        items: [
-          { name: 'Aset', page: 'aset' },
-          { name: 'Laba', page: 'laba' },
-          { name: 'Pendapatan Operasional', page: 'pendopr' },
-          { name: 'Biaya Operasional', page: 'byopr' },
-          { name: 'Pendapatan Penyaluran Dana', page: 'penydana' },
-          { name: 'Biaya Bagi Hasil & Bonus', page: 'bybaghas' },
-          { name: 'Pendapatan Fee Based Income', page: 'fbi' }
-        ]
-      },
-      {
-        id: 'dpk', title: 'Dana Pihak Ketiga', icon: 'wallet',
-        items: [
-          { name: 'Total DPK', page: 'dpk' },
-          { name: 'Giro', page: 'giro' },
-          { name: 'Tabungan', page: 'tabungan' },
-          { name: 'Deposito', page: 'deposito' },
-          { name: 'NOA DPK', page: 'noadpk' }
-        ]
-      },
-      {
-        id: 'pembiayaan', title: 'Pembiayaan', icon: 'hand-coins',
-        items: [
-          { name: 'Total Pembiayaan', page: 'pembiayaan' },
-          { name: 'Korporate', page: 'korporate' },
-          { name: 'UMKM', page: 'umkm' },
-          { name: 'Konsumer', page: 'konsumer' },
-          { name: 'Modal Kerja', page: 'modalkerja' },
-          { name: 'Investasi', page: 'investasi' },
-          { name: 'NOA Pembiayaan', page: 'noapby' },
-          { name: 'Ekspansi KUR', page: 'ekskur' },
-          { name: 'Posisi KUR', page: 'poskur' },
-          { name: 'Ekspansi FLPP', page: 'eksflpp' },
-          { name: 'Posisi FLPP', page: 'posflpp' }
-        ]
-      },
-      {
-        id: 'rasio', title: 'Rasio', icon: 'pie-chart',
-        items: [
-          { name: 'ROA', page: 'roa' },
-          { name: 'NI', page: 'ni' },
-          { name: 'FDR', page: 'fdr' },
-          { name: 'BOPO', page: 'bopo' },
-          { name: 'NPF', page: 'npf' },
-          { name: 'CASA', page: 'casa' },
-          { name: 'FAR', page: 'far' },
-          { name: '% FBI', page: 'pctfbi' },
-          { name: '% UMKM', page: 'pctumkm' }
-        ]
-      }
-    ];
+    // Menu sidebar (MENU_CONFIG) diatur di navigation.html.
 
     /* ======================= STATE ======================= */
     const PAGES = {};          // diisi oleh file halaman: PAGES.hldpk = {...}
@@ -1222,16 +901,8 @@
       if (typeof lucide !== 'undefined') lucide.createIcons();
     }
 
-    /* ======================= NAVIGASI ======================= */
-    /** Mencari menu sidebar yang memuat halaman tertentu. */
-    function cariMenu(pageId) {
-      for (const menu of MENU_CONFIG) {
-        const sub = menu.items.find(s => s.page === pageId);
-        if (sub) return { menu, sub };
-      }
-      return null;
-    }
-
+    /* ======================= PINDAH HALAMAN =======================
+       Menu sidebar & fungsi cariMenu / perbaruiHighlightSidebar ada di navigation.html. */
     function bukaHalaman(pageId) {
       if (!PAGES[pageId]) return;
       const lokasi = cariMenu(pageId);
@@ -1249,75 +920,6 @@
     function bukaHalamanHlAset() { bukaHalaman('hlaset'); }
     function bukaHalamanHlDpk() { bukaHalaman('hldpk'); }
     function bukaHalamanHlPembiayaan() { bukaHalaman('hlpembiayaan'); }
-
-    function klikMenuUtama(menuId) {
-      const sb = document.getElementById('sidebar');
-      if (sb.classList.contains('collapsed')) sb.classList.remove('collapsed');
-
-      if (STATE.activeMenuId === menuId) {
-        document.getElementById('sub-' + menuId).classList.toggle('open');
-        document.getElementById('nav-' + menuId).classList.toggle('open-menu');
-        return;
-      }
-      const menu = MENU_CONFIG.find(m => m.id === menuId);
-      if (menu) bukaHalaman(menu.items[0].page);
-    }
-
-    function bangunSidebar() {
-      const container = document.getElementById('sidebarMenuContainer');
-      container.innerHTML = '';
-
-      MENU_CONFIG.forEach(menu => {
-        const li = document.createElement('li');
-        li.className = 'nav-item';
-        li.id = 'nav-' + menu.id;
-        li.title = menu.title;
-        li.innerHTML = `
-          <div class="nav-item-left">
-            <i data-lucide="${menu.icon}" class="nav-icon"></i>
-            <span class="nav-label">${esc(menu.title)}</span>
-          </div>
-          <i data-lucide="chevron-down" class="chevron-icon"></i>`;
-        li.onclick = () => klikMenuUtama(menu.id);
-        container.appendChild(li);
-
-        const ulSub = document.createElement('ul');
-        ulSub.className = 'submenu-list';
-        ulSub.id = 'sub-' + menu.id;
-        menu.items.forEach(sub => {
-          const liSub = document.createElement('li');
-          liSub.className = 'submenu-item';
-          liSub.id = 'subitem-' + menu.id + '-' + sub.page;
-          liSub.innerHTML = `<span class="submenu-dot"></span><span>${esc(sub.name)}</span>`;
-          liSub.onclick = (e) => { e.stopPropagation(); bukaHalaman(sub.page); };
-          ulSub.appendChild(liSub);
-        });
-        container.appendChild(ulSub);
-      });
-
-      if (typeof lucide !== 'undefined') lucide.createIcons();
-    }
-
-    function perbaruiHighlightSidebar() {
-      MENU_CONFIG.forEach(m => {
-        const navEl = document.getElementById('nav-' + m.id);
-        const subUl = document.getElementById('sub-' + m.id);
-        if (!navEl || !subUl) return;
-        const aktif = m.id === STATE.activeMenuId;
-        navEl.classList.toggle('active', aktif);
-        navEl.classList.toggle('open-menu', aktif);
-        subUl.classList.toggle('open', aktif);
-        m.items.forEach(s => {
-          const el = document.getElementById('subitem-' + m.id + '-' + s.page);
-          if (el) el.classList.toggle('active-sub', aktif && s.page === STATE.page);
-        });
-      });
-    }
-
-    function toggleSidebar() {
-      document.getElementById('sidebar').classList.toggle('collapsed');
-      setTimeout(() => Object.values(CHARTS).forEach(c => c.resize()), 360);
-    }
 
     /* ======================= KARTU KPI ======================= */
     /**
@@ -1718,18 +1320,8 @@
   <div id="dashboard-page">
     <div class="app-layout">
 
-      <!-- SIDEBAR -->
-      <aside class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-          <div class="brand-wrapper">
-            <div class="brand-icon"><i data-lucide="landmark" style="width: 20px; height: 20px; color: #fff;"></i></div>
-            <div class="brand-text"><h2>Unit Usaha<br>Syariah</h2></div>
-          </div>
-          <button class="btn-collapse" onclick="toggleSidebar()" title="Sembunyikan / Tampilkan Menu"><i data-lucide="chevron-left"></i></button>
-        </div>
-        <div class="menu-caption">Menu Navigasi</div>
-        <div class="nav-scroll"><ul class="nav-list" id="sidebarMenuContainer"></ul></div>
-      </aside>
+      <!-- SIDEBAR (navigation.html) -->
+      <?!= include('navigation'); ?>
 
       <!-- AREA UTAMA -->
       <main class="main-area">

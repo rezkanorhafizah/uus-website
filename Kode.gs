@@ -5,6 +5,7 @@
  *  Struktur file HTML (semua di-include dari Index.html):
  *    css.html          : stylesheet
  *    login.html        : halaman login
+ *    navigation.html   : sidebar & daftar menu (MENU_CONFIG)
  *    filter.html       : filter utama (tanggal, tahun, series, konsolidasi, unit)
  *    home.html         : highlight kinerja utama (ringkasan)
  *    hlaset.html       : highlight Aset & Laba (+ rasio keuangan)
