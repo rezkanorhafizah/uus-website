@@ -26,7 +26,7 @@ Edit `MENU_CONFIG` di bagian `<script>`: urutan array = urutan di sidebar.
 ### Filter
 - **Tanggal Data**: posisi bulan untuk KPI, leaderboard, dan tabel.
 - **Tahun** (checkbox, bisa pilih beberapa): tahun yang ditampilkan di grafik trend / realisasi. Minimal satu tahun harus dicentang.
-- **Series Data**: `Bulanan` (semua bulan), `Triwulanan` (akhir Mar/Jun/Sep/Des), `Semester` (akhir Jun/Des), `Tahunan` (akhir Des).
+- **Series Data**: `Bulanan` (semua bulan, default), `Triwulanan` (akhir Mar/Jun/Sep/Des), `Semester` (akhir Jun/Des), `Tahunan` (akhir Des).
   Sumbu grafik memakai nama periode real, mis. `Mar 2025`, `Jun 2025`, `Des 2025`.
   Posisi bulan pada Tanggal Data selalu ikut sebagai titik terakhir, mis. `Agt 2026` bila belum akhir triwulan.
 

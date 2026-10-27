@@ -172,8 +172,8 @@
   <div class="filter-card">
     <label class="filter-label" for="filterSeries"><i data-lucide="layers" style="width:13px;height:13px;"></i> Series Data</label>
     <select id="filterSeries" onchange="terapkanFilter()">
-      <option value="Bulanan">Bulanan</option>
-      <option value="Triwulanan" selected>Triwulanan</option>
+      <option value="Bulanan" selected>Bulanan</option>
+      <option value="Triwulanan">Triwulanan</option>
       <option value="Semester">Semester</option>
       <option value="Tahunan">Tahunan</option>
     </select>
@@ -213,7 +213,7 @@
 
   /* ---------- Periode series ---------- */
   function periodeSesuaiSeries(semua, pTerpilih, series, tahun) {
-    const bulan = SERIES_BULAN[series] || SERIES_BULAN.Triwulanan;
+    const bulan = SERIES_BULAN[series] || SERIES_BULAN.Bulanan;
     return semua.filter(p => p <= pTerpilih && tahun.has(p.slice(0, 4)) && (bulan.includes(p.slice(5)) || p === pTerpilih));
   }
 
