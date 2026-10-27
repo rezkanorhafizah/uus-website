@@ -1,6 +1,6 @@
 <!-- ================= FILE: filter.html — Filter Utama =================
      Berlaku untuk semua halaman: Tanggal Data • Tahun (checkbox, boleh pilih beberapa) •
-     Series Data (Triwulanan / Semester / Tahunan) • Konsolidasi Cabang • Unit Kerja.
+     Series Data (Bulanan / Triwulanan / Semester / Tahunan) • Konsolidasi Cabang • Unit Kerja.
      - Tanggal Data   : posisi untuk KPI, leaderboard dan tabel.
      - Tahun & Series : periode yang ditampilkan di grafik trend / realisasi. -->
 <style>
@@ -172,7 +172,8 @@
   <div class="filter-card">
     <label class="filter-label" for="filterSeries"><i data-lucide="layers" style="width:13px;height:13px;"></i> Series Data</label>
     <select id="filterSeries" onchange="terapkanFilter()">
-      <option value="Triwulanan" selected>Triwulanan</option>
+      <option value="Bulanan" selected>Bulanan</option>
+      <option value="Triwulanan">Triwulanan</option>
       <option value="Semester">Semester</option>
       <option value="Tahunan">Tahunan</option>
     </select>
@@ -198,6 +199,7 @@
   // Bulan akhir periode untuk tiap series. Posisi bulan pada "Tanggal Data" selalu
   // ikut ditampilkan sebagai titik terakhir walaupun bukan akhir periode.
   const SERIES_BULAN = {
+    Bulanan: ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'],
     Triwulanan: ['03', '06', '09', '12'],
     Semester: ['06', '12'],
     Tahunan: ['12']
@@ -211,7 +213,7 @@
 
   /* ---------- Periode series ---------- */
   function periodeSesuaiSeries(semua, pTerpilih, series, tahun) {
-    const bulan = SERIES_BULAN[series] || SERIES_BULAN.Triwulanan;
+    const bulan = SERIES_BULAN[series] || SERIES_BULAN.Bulanan;
     return semua.filter(p => p <= pTerpilih && tahun.has(p.slice(0, 4)) && (bulan.includes(p.slice(5)) || p === pTerpilih));
   }
 
