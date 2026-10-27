@@ -1,0 +1,369 @@
+<!-- ================= FILE: filter.html — Filter Utama =================
+     Berlaku untuk semua halaman: Tanggal Data • Tahun (checkbox, boleh pilih beberapa) •
+     Series Data (Triwulanan / Semester / Tahunan) • Konsolidasi Cabang • Unit Kerja.
+     - Tanggal Data   : posisi untuk KPI, leaderboard dan tabel.
+     - Tahun & Series : periode yang ditampilkan di grafik trend / realisasi. -->
+<style>
+  .filter-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 14px;
+  }
+
+  .filter-card {
+    background-color: #ffffff;
+    padding: 12px 16px;
+    border-radius: 14px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+    border: 1px solid rgba(10, 115, 64, 0.08);
+    position: relative;
+    min-width: 0;
+  }
+
+  .filter-card label.filter-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--primary-green);
+    margin-bottom: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+
+  .filter-card select,
+  .tahun-toggle {
+    width: 100%;
+    height: 24px;
+    border: none;
+    outline: none;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1e293b;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  /* ---------- Dropdown checkbox tahun ---------- */
+  .tahun-toggle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 6px;
+    text-align: left;
+    padding: 0 2px 0 4px;
+  }
+
+  .tahun-toggle span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .tahun-toggle svg {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+    transition: transform 0.2s;
+  }
+
+  .tahun-dropdown.open .tahun-toggle svg { transform: rotate(180deg); }
+
+  .tahun-panel {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    z-index: 60;
+    background: #ffffff;
+    border: 1px solid #d1e2d7;
+    border-radius: 12px;
+    box-shadow: 0 12px 28px rgba(7, 89, 49, 0.16);
+    padding: 8px;
+  }
+
+  .tahun-dropdown.open .tahun-panel { display: block; }
+
+  .tahun-panel-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 6px;
+    padding: 2px 4px 8px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid #eef2f0;
+  }
+
+  .tahun-panel-head button {
+    border: none;
+    background: none;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--primary-green);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .tahun-list {
+    max-height: 210px;
+    overflow-y: auto;
+  }
+
+  .tahun-opsi {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 7px 8px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1e293b;
+    cursor: pointer;
+  }
+
+  .tahun-opsi:hover { background: #f1f8f4; }
+
+  .tahun-opsi input {
+    width: 15px;
+    height: 15px;
+    accent-color: var(--primary-green);
+    cursor: pointer;
+  }
+
+  .tahun-catatan {
+    font-size: 10.5px;
+    color: var(--text-muted);
+    padding: 6px 8px 2px;
+  }
+
+  .tahun-catatan.peringatan { color: #b45309; }
+
+  @media (max-width: 1200px) {
+    .filter-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  @media (max-width: 760px) {
+    .filter-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="filter-grid">
+  <div class="filter-card">
+    <label class="filter-label" for="filterTanggal"><i data-lucide="calendar" style="width:13px;height:13px;"></i> Tanggal Data</label>
+    <select id="filterTanggal" onchange="terapkanFilter()"></select>
+  </div>
+
+  <div class="filter-card tahun-dropdown" id="filterTahun">
+    <label class="filter-label"><i data-lucide="calendar-range" style="width:13px;height:13px;"></i> Tahun</label>
+    <button type="button" class="tahun-toggle" onclick="toggleTahunDropdown(event)">
+      <span id="filterTahunRingkas">Semua Tahun</span><i data-lucide="chevron-down"></i>
+    </button>
+    <div class="tahun-panel" onclick="event.stopPropagation()">
+      <div class="tahun-panel-head">
+        <button type="button" onclick="pilihSemuaTahun()">Pilih semua</button>
+        <button type="button" onclick="pilihTahunTerakhir()">Terbaru saja</button>
+      </div>
+      <div class="tahun-list" id="filterTahunList"></div>
+      <div class="tahun-catatan" id="filterTahunCatatan">Minimal satu tahun harus dipilih.</div>
+    </div>
+  </div>
+
+  <div class="filter-card">
+    <label class="filter-label" for="filterSeries"><i data-lucide="layers" style="width:13px;height:13px;"></i> Series Data</label>
+    <select id="filterSeries" onchange="terapkanFilter()">
+      <option value="Triwulanan" selected>Triwulanan</option>
+      <option value="Semester">Semester</option>
+      <option value="Tahunan">Tahunan</option>
+    </select>
+  </div>
+
+  <div class="filter-card">
+    <label class="filter-label" for="filterKonsolidasi"><i data-lucide="building-2" style="width:13px;height:13px;"></i> Konsolidasi Cabang</label>
+    <select id="filterKonsolidasi" onchange="onKonsolidasiChange()">
+      <option value="Unit Usaha Syariah">Unit Usaha Syariah</option>
+      <option value="KCS Banjarmasin Konsolidasi">Konsolidasi KCS Banjarmasin</option>
+      <option value="KCS Kandangan Konsolidasi">Konsolidasi KCS Kandangan</option>
+      <option value="UUS KP">UUS KP</option>
+    </select>
+  </div>
+
+  <div class="filter-card">
+    <label class="filter-label" for="filterUnitKerja"><i data-lucide="map-pin" style="width:13px;height:13px;"></i> Unit Kerja</label>
+    <select id="filterUnitKerja" onchange="terapkanFilter()"></select>
+  </div>
+</div>
+
+<script>
+  // Bulan akhir periode untuk tiap series. Posisi bulan pada "Tanggal Data" selalu
+  // ikut ditampilkan sebagai titik terakhir walaupun bukan akhir periode.
+  const SERIES_BULAN = {
+    Triwulanan: ['03', '06', '09', '12'],
+    Semester: ['06', '12'],
+    Tahunan: ['12']
+  };
+
+  const FILTER = {
+    tahunTersedia: [],          // tahun yang ada di sheet utama halaman aktif (terbaru dulu)
+    tahunDipilih: new Set(),    // tahun yang dicentang
+    tahunDikenal: new Set()     // tahun yang pernah muncul (tahun baru otomatis dicentang)
+  };
+
+  /* ---------- Periode & label series ---------- */
+  function periodeSesuaiSeries(semua, pTerpilih, series, tahun) {
+    const bulan = SERIES_BULAN[series] || SERIES_BULAN.Triwulanan;
+    return semua.filter(p => p <= pTerpilih && tahun.has(p.slice(0, 4)) && (bulan.includes(p.slice(5)) || p === pTerpilih));
+  }
+
+  /** "TW III 2026", "Smt I 2026", "2025"; posisi di luar akhir periode memakai label bulan. */
+  function labelSeries(p, series) {
+    const [y, m] = p.split('-');
+    const b = Number(m);
+    if (series === 'Triwulanan' && b % 3 === 0) return `TW ${['I', 'II', 'III', 'IV'][b / 3 - 1]} ${y}`;
+    if (series === 'Semester' && b % 6 === 0) return `Smt ${b === 6 ? 'I' : 'II'} ${y}`;
+    if (series === 'Tahunan' && b === 12) return y;
+    return labelPeriode(p);
+  }
+
+  /* ---------- Tanggal Data ---------- */
+  function perbaruiOpsiTanggal(sheetUtama) {
+    const sel = document.getElementById('filterTanggal');
+    const periode = daftarPeriode(sheetUtama).reverse();
+    const lama = sel.value;
+    const kunciBaru = periode.join(',');
+    if (sel.dataset.kunci !== kunciBaru) {
+      sel.innerHTML = periode.map(p => `<option value="${p}">${labelPeriode(p)}</option>`).join('');
+      sel.dataset.kunci = kunciBaru;
+    }
+    if (periode.includes(lama)) sel.value = lama;
+    else if (periode.length) sel.value = periode[0];
+  }
+
+  /* ---------- Tahun (checkbox) ---------- */
+  function perbaruiOpsiTahun(sheetUtama) {
+    const tahun = [...new Set(daftarPeriode(sheetUtama).map(p => p.slice(0, 4)))].sort().reverse();
+    tahun.forEach(t => {
+      if (!FILTER.tahunDikenal.has(t)) {
+        FILTER.tahunDikenal.add(t);
+        FILTER.tahunDipilih.add(t);
+      }
+    });
+    FILTER.tahunTersedia = tahun;
+
+    const list = document.getElementById('filterTahunList');
+    const kunci = tahun.join(',');
+    if (list.dataset.kunci !== kunci) {
+      list.innerHTML = tahun.length
+        ? tahun.map(t => `<label class="tahun-opsi"><input type="checkbox" value="${t}" onchange="onTahunChange(this)">${t}</label>`).join('')
+        : '<div class="tahun-catatan">Belum ada data periode.</div>';
+      list.dataset.kunci = kunci;
+    }
+    const aktif = tahunAktif();
+    list.querySelectorAll('input').forEach(cb => { cb.checked = aktif.has(cb.value); });
+    setTeks('filterTahunRingkas', ringkasTahun());
+  }
+
+  /** Tahun yang dicentang & tersedia; bila tidak ada yang cocok, pakai semua tahun tersedia. */
+  function tahunAktif() {
+    const dipilih = FILTER.tahunTersedia.filter(t => FILTER.tahunDipilih.has(t));
+    return new Set(dipilih.length ? dipilih : FILTER.tahunTersedia);
+  }
+
+  function ringkasTahun() {
+    const aktif = [...tahunAktif()].sort();
+    if (!FILTER.tahunTersedia.length) return '-';
+    if (aktif.length === FILTER.tahunTersedia.length) return 'Semua Tahun';
+    return aktif.join(', ');
+  }
+
+  function onTahunChange(cb) {
+    const catatan = document.getElementById('filterTahunCatatan');
+    if (!cb.checked && tahunAktif().size <= 1) {
+      cb.checked = true;
+      catatan.classList.add('peringatan');
+      setTimeout(() => catatan.classList.remove('peringatan'), 1500);
+      return;
+    }
+    if (cb.checked) FILTER.tahunDipilih.add(cb.value);
+    else FILTER.tahunDipilih.delete(cb.value);
+    renderHalamanAktif();
+  }
+
+  function pilihSemuaTahun() {
+    FILTER.tahunTersedia.forEach(t => FILTER.tahunDipilih.add(t));
+    renderHalamanAktif();
+  }
+
+  function pilihTahunTerakhir() {
+    if (!FILTER.tahunTersedia.length) return;
+    FILTER.tahunTersedia.forEach(t => FILTER.tahunDipilih.delete(t));
+    FILTER.tahunDipilih.add(FILTER.tahunTersedia[0]);
+    renderHalamanAktif();
+  }
+
+  function toggleTahunDropdown(e) {
+    e.stopPropagation();
+    document.getElementById('filterTahun').classList.toggle('open');
+  }
+
+  document.addEventListener('click', () => {
+    const el = document.getElementById('filterTahun');
+    if (el) el.classList.remove('open');
+  });
+
+  /* ---------- Konsolidasi & Unit Kerja ---------- */
+  function perbaruiOpsiUnit() {
+    const konsol = document.getElementById('filterKonsolidasi').value;
+    const sel = document.getElementById('filterUnitKerja');
+    const lama = sel.value;
+    const labelSemua = {
+      [ENTITAS_UUS]: 'Semua Unit Kerja (Konsolidasi UUS)',
+      [KONSOL_BJM]: 'Semua Zonasi KCS Banjarmasin',
+      [KONSOL_KDG]: 'Semua Zonasi KCS Kandangan',
+      [UUS_KP]: 'UUS KP'
+    };
+    const opsi = [{ v: konsol, l: labelSemua[konsol] }];
+    if (konsol !== UUS_KP) anggotaKonsolidasi(konsol).forEach(u => opsi.push({ v: u, l: u }));
+    sel.innerHTML = opsi.map(o => `<option value="${esc(o.v)}">${esc(o.l)}</option>`).join('');
+    if (opsi.some(o => o.v === lama)) sel.value = lama;
+  }
+
+  function onKonsolidasiChange() {
+    perbaruiOpsiUnit();
+    renderHalamanAktif();
+  }
+
+  function terapkanFilter() {
+    renderHalamanAktif();
+  }
+
+  /* ---------- Dipanggil Index.html sebelum halaman dirender ---------- */
+  function perbaruiOpsiFilter(sheetUtama) {
+    perbaruiOpsiTanggal(sheetUtama);
+    perbaruiOpsiTahun(sheetUtama);
+    perbaruiOpsiUnit();
+  }
+
+  /**
+   * Konteks filter untuk render halaman:
+   * p (Tanggal Data), series, tahun (Set), konsol, entity, seriesPeriods + seriesLabels (untuk grafik).
+   */
+  function bangunKonteks(page) {
+    const semua = daftarPeriode(page.primary());
+    const p = document.getElementById('filterTanggal').value || semua[semua.length - 1] || '';
+    const series = document.getElementById('filterSeries').value;
+    const tahun = tahunAktif();
+    const konsol = document.getElementById('filterKonsolidasi').value;
+    const entity = document.getElementById('filterUnitKerja').value || konsol;
+    const seriesPeriods = p ? periodeSesuaiSeries(semua, p, series, tahun) : [];
+    return {
+      p, series, tahun, konsol, entity,
+      label: labelPeriode(p),
+      periods: semua,
+      seriesPeriods,
+      seriesLabels: seriesPeriods.map(x => labelSeries(x, series)),
+      anggota: anggotaKonsolidasi(konsol),
+      info: `${entity} • ${labelPeriode(p)} • Series ${series} • Tahun ${ringkasTahun()}`
+    };
+  }
+</script>

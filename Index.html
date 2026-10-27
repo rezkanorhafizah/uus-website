@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <!-- ================= FILE: Index.html =================
      Kerangka dashboard + halaman RINGKASAN EKSEKUTIF (Highlight Kinerja Utama).
-     Berisi: stylesheet bersama (layout, sidebar, topbar, filter, kartu, chart, tabel),
-     logika inti (menu, state, pemuatan data, filter, navigasi, helper chart & tabel),
+     Berisi: stylesheet bersama (layout, topbar, kartu, chart, tabel),
+     logika inti (state, pemuatan data, pindah halaman, helper chart & tabel).
+     Sidebar/menu dimuat dari navigation.html, filter utama dari filter.html,
      lalu memuat setiap halaman menu lewat include(). Setiap file halaman membawa
      <style> dan <script> miliknya sendiri dan mendaftarkan diri ke objek PAGES. -->
 <html lang="id">
@@ -30,8 +31,6 @@
       --card-blue: #1d4ed8;
       --text-dark: #1e293b;
       --text-muted: #64748b;
-      --sidebar-width: 275px;
-      --sidebar-collapsed-width: 80px;
     }
 
     * {
@@ -59,258 +58,6 @@
       width: 100%;
       min-height: calc(100vh - 28px);
       gap: 20px;
-    }
-
-    /* ================= SIDEBAR MODERN ================= */
-    .sidebar {
-      width: var(--sidebar-width);
-      background: linear-gradient(165deg, #0b7a44 0%, #075931 100%);
-      border-radius: 24px;
-      color: #ffffff;
-      padding: 24px 0;
-      display: flex;
-      flex-direction: column;
-      flex-shrink: 0;
-      max-height: calc(100vh - 28px);
-      position: sticky;
-      top: 14px;
-      box-shadow: 0 12px 30px rgba(7, 89, 49, 0.22);
-      transition: width 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-      z-index: 50;
-    }
-
-    .sidebar.collapsed {
-      width: var(--sidebar-collapsed-width);
-    }
-
-    .sidebar-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0 20px 0 22px;
-      margin-bottom: 24px;
-      min-height: 48px;
-    }
-
-    .brand-wrapper {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      overflow: hidden;
-      white-space: nowrap;
-    }
-
-    .brand-icon {
-      width: 38px;
-      height: 38px;
-      background: rgba(255, 255, 255, 0.16);
-      border: 1px solid rgba(255, 255, 255, 0.25);
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-
-    .brand-text h2 {
-      font-size: 16.5px;
-      font-weight: 700;
-      line-height: 1.25;
-    }
-
-    .sidebar.collapsed .brand-wrapper {
-      display: none;
-    }
-
-    .sidebar.collapsed .sidebar-header {
-      justify-content: center;
-      padding: 0;
-    }
-
-    .btn-collapse {
-      background: rgba(255, 255, 255, 0.15);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      color: white;
-      width: 36px;
-      height: 36px;
-      border-radius: 11px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      transition: all 0.25s ease;
-    }
-
-    .btn-collapse:hover {
-      background: rgba(255, 255, 255, 0.28);
-    }
-
-    .btn-collapse svg {
-      width: 18px;
-      height: 18px;
-      transition: transform 0.35s ease;
-    }
-
-    .sidebar.collapsed .btn-collapse svg {
-      transform: rotate(180deg);
-    }
-
-    .menu-caption {
-      font-size: 10.5px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: rgba(255, 255, 255, 0.55);
-      padding: 0 24px;
-      margin-bottom: 10px;
-      white-space: nowrap;
-      overflow: hidden;
-    }
-
-    .sidebar.collapsed .menu-caption {
-      opacity: 0;
-      height: 0;
-      margin: 0;
-    }
-
-    .nav-scroll {
-      overflow-y: auto;
-      overflow-x: hidden;
-      flex: 1;
-      padding-bottom: 16px;
-    }
-
-    .nav-scroll::-webkit-scrollbar {
-      width: 4px;
-    }
-    .nav-scroll::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.22);
-      border-radius: 4px;
-    }
-
-    .nav-list {
-      list-style: none;
-    }
-
-    .nav-item {
-      padding: 12px 18px;
-      margin-left: 14px;
-      border-radius: 28px 0 0 28px;
-      font-size: 12.5px;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      transition: all 0.25s ease;
-      text-transform: uppercase;
-      margin-bottom: 4px;
-      color: rgba(255, 255, 255, 0.9);
-    }
-
-    .nav-item-left {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      white-space: nowrap;
-      overflow: hidden;
-    }
-
-    .nav-icon {
-      width: 20px;
-      height: 20px;
-      flex-shrink: 0;
-    }
-
-    .nav-item.active {
-      background-color: var(--bg-light);
-      color: var(--primary-green);
-      font-weight: 700;
-      box-shadow: -4px 4px 12px rgba(0, 0, 0, 0.06);
-    }
-
-    .nav-item:not(.active):hover {
-      background-color: rgba(255, 255, 255, 0.1);
-      color: #ffffff;
-    }
-
-    .chevron-icon {
-      width: 16px;
-      height: 16px;
-      flex-shrink: 0;
-      transition: transform 0.3s ease;
-      opacity: 0.8;
-    }
-
-    .nav-item.open-menu .chevron-icon {
-      transform: rotate(180deg);
-    }
-
-    .sidebar.collapsed .nav-item {
-      margin: 6px 12px;
-      padding: 13px 0;
-      border-radius: 14px;
-      justify-content: center;
-    }
-
-    .sidebar.collapsed .nav-label,
-    .sidebar.collapsed .chevron-icon,
-    .sidebar.collapsed .submenu-list {
-      display: none !important;
-    }
-
-    .submenu-list {
-      list-style: none;
-      margin: 2px 14px 10px 31px;
-      padding-left: 14px;
-      border-left: 1.5px solid rgba(255, 255, 255, 0.22);
-      display: none;
-    }
-
-    .submenu-list.open {
-      display: block;
-    }
-
-    .submenu-item {
-      padding: 8px 12px;
-      font-size: 11.5px;
-      color: rgba(255, 255, 255, 0.78);
-      cursor: pointer;
-      line-height: 1.35;
-      border-radius: 9px;
-      transition: all 0.2s;
-      text-transform: uppercase;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 2px;
-    }
-
-    .submenu-dot {
-      width: 5px;
-      height: 5px;
-      border-radius: 50%;
-      background-color: rgba(255, 255, 255, 0.45);
-      flex-shrink: 0;
-    }
-
-    .submenu-item:hover {
-      color: #ffffff;
-      background-color: rgba(255, 255, 255, 0.1);
-      padding-left: 15px;
-    }
-
-    .submenu-item.active-sub {
-      color: #ffffff;
-      font-weight: 700;
-      background-color: rgba(255, 255, 255, 0.18);
-    }
-
-    .submenu-item.active-sub .submenu-dot {
-      background-color: #4ade80;
-      transform: scale(1.4);
-      box-shadow: 0 0 6px #4ade80;
     }
 
     /* ================= AREA UTAMA ================= */
@@ -484,44 +231,6 @@
     .btn-logout:hover {
       background-color: #fee2e2;
       color: #dc2626;
-    }
-
-    /* ================= FILTER UTAMA ================= */
-    .filter-grid-4 {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 14px;
-    }
-
-    .filter-card {
-      background-color: #ffffff;
-      padding: 12px 16px;
-      border-radius: 14px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
-      border: 1px solid rgba(10, 115, 64, 0.08);
-    }
-
-    .filter-card label {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 10px;
-      font-weight: 700;
-      color: var(--primary-green);
-      margin-bottom: 5px;
-      text-transform: uppercase;
-      letter-spacing: 0.4px;
-    }
-
-    .filter-card select {
-      width: 100%;
-      border: none;
-      outline: none;
-      font-size: 13px;
-      font-weight: 600;
-      color: #1e293b;
-      background: transparent;
-      cursor: pointer;
     }
 
     /* ================= HALAMAN RINGKASAN EKSEKUTIF (Index) ================= */
@@ -956,10 +665,6 @@
     @media (max-width: 760px) {
       #dashboard-page { padding: 8px; }
       .app-layout { flex-direction: column; gap: 12px; }
-      .sidebar { width: 100%; position: static; max-height: none; padding: 16px 0; }
-      .sidebar.collapsed { width: 100%; }
-      .sidebar.collapsed .nav-scroll { display: none; }
-      .filter-grid-4,
       .kpi-grid-5,
       .grid-3 { grid-template-columns: 1fr; }
       .topbar { padding: 12px 14px; }
@@ -992,71 +697,7 @@
     const NAMA_BULAN = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'];
 
     // fmt: 'rp' = nominal Rupiah, 'num' = jumlah rekening (NOA), 'pct' = rasio
-    // Urutan sidebar. "page" = id halaman = nama file HTML-nya (mis. page: 'giro' -> giro.html).
-    // Ringkasan Eksekutif (page: 'home') ada di Index.html.
-    const MENU_CONFIG = [
-      {
-        id: 'highlight', title: 'Highlight Kinerja', icon: 'sparkles',
-        items: [
-          { name: 'Ringkasan Eksekutif', page: 'home' },
-          { name: 'Aset & Laba', page: 'hlaset' },
-          { name: 'DPK', page: 'hldpk' },
-          { name: 'Pembiayaan', page: 'hlpembiayaan' }
-        ]
-      },
-      {
-        id: 'aset_laba', title: 'Aset & Laba', icon: 'trending-up',
-        items: [
-          { name: 'Aset', page: 'aset' },
-          { name: 'Laba', page: 'laba' },
-          { name: 'Pendapatan Operasional', page: 'pendopr' },
-          { name: 'Biaya Operasional', page: 'byopr' },
-          { name: 'Pendapatan Penyaluran Dana', page: 'penydana' },
-          { name: 'Biaya Bagi Hasil & Bonus', page: 'bybaghas' },
-          { name: 'Pendapatan Fee Based Income', page: 'fbi' }
-        ]
-      },
-      {
-        id: 'dpk', title: 'Dana Pihak Ketiga', icon: 'wallet',
-        items: [
-          { name: 'Total DPK', page: 'dpk' },
-          { name: 'Giro', page: 'giro' },
-          { name: 'Tabungan', page: 'tabungan' },
-          { name: 'Deposito', page: 'deposito' },
-          { name: 'NOA DPK', page: 'noadpk' }
-        ]
-      },
-      {
-        id: 'pembiayaan', title: 'Pembiayaan', icon: 'hand-coins',
-        items: [
-          { name: 'Total Pembiayaan', page: 'pembiayaan' },
-          { name: 'Korporate', page: 'korporate' },
-          { name: 'UMKM', page: 'umkm' },
-          { name: 'Konsumer', page: 'konsumer' },
-          { name: 'Modal Kerja', page: 'modalkerja' },
-          { name: 'Investasi', page: 'investasi' },
-          { name: 'NOA Pembiayaan', page: 'noapby' },
-          { name: 'Ekspansi KUR', page: 'ekskur' },
-          { name: 'Posisi KUR', page: 'poskur' },
-          { name: 'Ekspansi FLPP', page: 'eksflpp' },
-          { name: 'Posisi FLPP', page: 'posflpp' }
-        ]
-      },
-      {
-        id: 'rasio', title: 'Rasio', icon: 'pie-chart',
-        items: [
-          { name: 'ROA', page: 'roa' },
-          { name: 'NI', page: 'ni' },
-          { name: 'FDR', page: 'fdr' },
-          { name: 'BOPO', page: 'bopo' },
-          { name: 'NPF', page: 'npf' },
-          { name: 'CASA', page: 'casa' },
-          { name: 'FAR', page: 'far' },
-          { name: '% FBI', page: 'pctfbi' },
-          { name: '% UMKM', page: 'pctumkm' }
-        ]
-      }
-    ];
+    // Menu sidebar (MENU_CONFIG) diatur di navigation.html.
 
     /* ======================= STATE ======================= */
     const PAGES = {};          // diisi oleh file halaman: PAGES.hldpk = {...}
@@ -1130,13 +771,6 @@
 
     function daftarPeriode(sheet) {
       return [...new Set((DATA[sheet] || []).map(r => r.p))].sort();
-    }
-
-    function periodeSesuaiSeries(semua, pTerpilih, series) {
-      const sampai = semua.filter(p => p <= pTerpilih);
-      if (series === 'Triwulanan') return sampai.filter(p => ['03', '06', '09', '12'].includes(p.slice(5)) || p === pTerpilih);
-      if (series === 'Tahunan') return sampai.filter(p => p.slice(5) === '12' || p === pTerpilih);
-      return sampai;
     }
 
     /* ======================= AKSES DATA ======================= */
@@ -1253,66 +887,10 @@
       muatData(true);
     }
 
-    /* ======================= FILTER ======================= */
-    function perbaruiOpsiTanggal(sheetUtama) {
-      const sel = document.getElementById('filterTanggal');
-      const periode = daftarPeriode(sheetUtama).reverse();
-      const lama = sel.value;
-      const kunciBaru = periode.join(',');
-      if (sel.dataset.kunci !== kunciBaru) {
-        sel.innerHTML = periode.map(p => `<option value="${p}">${labelPeriode(p)}</option>`).join('');
-        sel.dataset.kunci = kunciBaru;
-      }
-      if (periode.includes(lama)) sel.value = lama;
-      else if (periode.length) sel.value = periode[0];
-    }
-
-    function perbaruiOpsiUnit() {
-      const konsol = document.getElementById('filterKonsolidasi').value;
-      const sel = document.getElementById('filterUnitKerja');
-      const lama = sel.value;
-      const labelSemua = {
-        [ENTITAS_UUS]: 'Semua Unit Kerja (Konsolidasi UUS)',
-        [KONSOL_BJM]: 'Semua Zonasi KCS Banjarmasin',
-        [KONSOL_KDG]: 'Semua Zonasi KCS Kandangan',
-        [UUS_KP]: 'UUS KP'
-      };
-      const opsi = [{ v: konsol, l: labelSemua[konsol] }];
-      if (konsol !== UUS_KP) anggotaKonsolidasi(konsol).forEach(u => opsi.push({ v: u, l: u }));
-      sel.innerHTML = opsi.map(o => `<option value="${esc(o.v)}">${esc(o.l)}</option>`).join('');
-      if (opsi.some(o => o.v === lama)) sel.value = lama;
-    }
-
-    function onKonsolidasiChange() {
-      perbaruiOpsiUnit();
-      renderHalamanAktif();
-    }
-
-    function terapkanFilter() {
-      renderHalamanAktif();
-    }
-
-    function bangunKonteks(page) {
-      const semua = daftarPeriode(page.primary());
-      const p = document.getElementById('filterTanggal').value || semua[semua.length - 1] || '';
-      const series = document.getElementById('filterSeries').value;
-      const konsol = document.getElementById('filterKonsolidasi').value;
-      const entity = document.getElementById('filterUnitKerja').value || konsol;
-      return {
-        p, series, konsol, entity,
-        label: labelPeriode(p),
-        periods: semua,
-        seriesPeriods: p ? periodeSesuaiSeries(semua, p, series) : [],
-        anggota: anggotaKonsolidasi(konsol),
-        info: `${entity} • ${labelPeriode(p)} • Series ${series}`
-      };
-    }
-
     function renderHalamanAktif() {
       const page = PAGES[STATE.page];
       if (!page) return;
-      perbaruiOpsiTanggal(page.primary());
-      perbaruiOpsiUnit();
+      perbaruiOpsiFilter(page.primary()); // filter.html
       const ctx = bangunKonteks(page);
       try {
         page.render(ctx);
@@ -1323,16 +901,8 @@
       if (typeof lucide !== 'undefined') lucide.createIcons();
     }
 
-    /* ======================= NAVIGASI ======================= */
-    /** Mencari menu sidebar yang memuat halaman tertentu. */
-    function cariMenu(pageId) {
-      for (const menu of MENU_CONFIG) {
-        const sub = menu.items.find(s => s.page === pageId);
-        if (sub) return { menu, sub };
-      }
-      return null;
-    }
-
+    /* ======================= PINDAH HALAMAN =======================
+       Menu sidebar & fungsi cariMenu / perbaruiHighlightSidebar ada di navigation.html. */
     function bukaHalaman(pageId) {
       if (!PAGES[pageId]) return;
       const lokasi = cariMenu(pageId);
@@ -1350,75 +920,6 @@
     function bukaHalamanHlAset() { bukaHalaman('hlaset'); }
     function bukaHalamanHlDpk() { bukaHalaman('hldpk'); }
     function bukaHalamanHlPembiayaan() { bukaHalaman('hlpembiayaan'); }
-
-    function klikMenuUtama(menuId) {
-      const sb = document.getElementById('sidebar');
-      if (sb.classList.contains('collapsed')) sb.classList.remove('collapsed');
-
-      if (STATE.activeMenuId === menuId) {
-        document.getElementById('sub-' + menuId).classList.toggle('open');
-        document.getElementById('nav-' + menuId).classList.toggle('open-menu');
-        return;
-      }
-      const menu = MENU_CONFIG.find(m => m.id === menuId);
-      if (menu) bukaHalaman(menu.items[0].page);
-    }
-
-    function bangunSidebar() {
-      const container = document.getElementById('sidebarMenuContainer');
-      container.innerHTML = '';
-
-      MENU_CONFIG.forEach(menu => {
-        const li = document.createElement('li');
-        li.className = 'nav-item';
-        li.id = 'nav-' + menu.id;
-        li.title = menu.title;
-        li.innerHTML = `
-          <div class="nav-item-left">
-            <i data-lucide="${menu.icon}" class="nav-icon"></i>
-            <span class="nav-label">${esc(menu.title)}</span>
-          </div>
-          <i data-lucide="chevron-down" class="chevron-icon"></i>`;
-        li.onclick = () => klikMenuUtama(menu.id);
-        container.appendChild(li);
-
-        const ulSub = document.createElement('ul');
-        ulSub.className = 'submenu-list';
-        ulSub.id = 'sub-' + menu.id;
-        menu.items.forEach(sub => {
-          const liSub = document.createElement('li');
-          liSub.className = 'submenu-item';
-          liSub.id = 'subitem-' + menu.id + '-' + sub.page;
-          liSub.innerHTML = `<span class="submenu-dot"></span><span>${esc(sub.name)}</span>`;
-          liSub.onclick = (e) => { e.stopPropagation(); bukaHalaman(sub.page); };
-          ulSub.appendChild(liSub);
-        });
-        container.appendChild(ulSub);
-      });
-
-      if (typeof lucide !== 'undefined') lucide.createIcons();
-    }
-
-    function perbaruiHighlightSidebar() {
-      MENU_CONFIG.forEach(m => {
-        const navEl = document.getElementById('nav-' + m.id);
-        const subUl = document.getElementById('sub-' + m.id);
-        if (!navEl || !subUl) return;
-        const aktif = m.id === STATE.activeMenuId;
-        navEl.classList.toggle('active', aktif);
-        navEl.classList.toggle('open-menu', aktif);
-        subUl.classList.toggle('open', aktif);
-        m.items.forEach(s => {
-          const el = document.getElementById('subitem-' + m.id + '-' + s.page);
-          if (el) el.classList.toggle('active-sub', aktif && s.page === STATE.page);
-        });
-      });
-    }
-
-    function toggleSidebar() {
-      document.getElementById('sidebar').classList.toggle('collapsed');
-      setTimeout(() => Object.values(CHARTS).forEach(c => c.resize()), 360);
-    }
 
     /* ======================= KARTU KPI ======================= */
     /**
@@ -1505,7 +1006,7 @@
 
     /** Line chart dua sumbu: a = sumbu kiri, b = sumbu kanan (opsional). */
     function renderTrendGanda(canvasId, ctx, a, b) {
-      const labels = ctx.seriesPeriods.map(labelPeriode);
+      const labels = ctx.seriesLabels;
       const ds = (cfg, axis) => ({
         label: cfg.label,
         data: ctx.seriesPeriods.map(p => nilai(cfg.sheet, ctx.entity, p)),
@@ -1553,7 +1054,7 @@
       buatChart(canvasId, {
         type: 'bar',
         data: {
-          labels: ps.map(labelPeriode),
+          labels: ctx.seriesLabels,
           datasets: [
             { label: 'Aktual', data: kin.map(k => k.v), backgroundColor: WARNA.hijau, borderRadius: 6, order: 2 },
             { label: 'Target RBB/C', data: kin.map(k => k.t), backgroundColor: WARNA.oranye, borderRadius: 6, order: 3 },
@@ -1659,7 +1160,7 @@
       buatChart(canvasId, {
         type: 'bar',
         data: {
-          labels: ps.map(labelPeriode),
+          labels: ctx.seriesLabels,
           datasets: [{ label: sheet, data, backgroundColor: ps.map(p => p === ctx.p ? WARNA.oranye : warna), borderRadius: 4 }]
         },
         options: {
@@ -1819,18 +1320,8 @@
   <div id="dashboard-page">
     <div class="app-layout">
 
-      <!-- SIDEBAR -->
-      <aside class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-          <div class="brand-wrapper">
-            <div class="brand-icon"><i data-lucide="landmark" style="width: 20px; height: 20px; color: #fff;"></i></div>
-            <div class="brand-text"><h2>Unit Usaha<br>Syariah</h2></div>
-          </div>
-          <button class="btn-collapse" onclick="toggleSidebar()" title="Sembunyikan / Tampilkan Menu"><i data-lucide="chevron-left"></i></button>
-        </div>
-        <div class="menu-caption">Menu Navigasi</div>
-        <div class="nav-scroll"><ul class="nav-list" id="sidebarMenuContainer"></ul></div>
-      </aside>
+      <!-- SIDEBAR (navigation.html) -->
+      <?!= include('navigation'); ?>
 
       <!-- AREA UTAMA -->
       <main class="main-area">
@@ -1855,13 +1346,8 @@
           </div>
         </header>
 
-        <!-- 4 FILTER UTAMA (berlaku untuk semua halaman) -->
-        <div class="filter-grid-4">
-          <div class="filter-card"><label for="filterTanggal"><i data-lucide="calendar" style="width:13px;height:13px;"></i> Tanggal Data</label><select id="filterTanggal" onchange="terapkanFilter()"></select></div>
-          <div class="filter-card"><label for="filterSeries"><i data-lucide="layers" style="width:13px;height:13px;"></i> Series Data</label><select id="filterSeries" onchange="terapkanFilter()"><option value="Bulanan" selected>Bulanan</option><option value="Triwulanan">Triwulanan</option><option value="Tahunan">Tahunan</option></select></div>
-          <div class="filter-card"><label for="filterKonsolidasi"><i data-lucide="building-2" style="width:13px;height:13px;"></i> Konsolidasi Cabang</label><select id="filterKonsolidasi" onchange="onKonsolidasiChange()"><option value="Unit Usaha Syariah">Unit Usaha Syariah</option><option value="KCS Banjarmasin Konsolidasi">Konsolidasi KCS Banjarmasin</option><option value="KCS Kandangan Konsolidasi">Konsolidasi KCS Kandangan</option><option value="UUS KP">UUS KP</option></select></div>
-          <div class="filter-card"><label for="filterUnitKerja"><i data-lucide="map-pin" style="width:13px;height:13px;"></i> Unit Kerja</label><select id="filterUnitKerja" onchange="terapkanFilter()"></select></div>
-        </div>
+        <!-- FILTER UTAMA (berlaku untuk semua halaman) -->
+        <?!= include('filter'); ?>
 
         <!-- ================= HALAMAN: RINGKASAN EKSEKUTIF ================= -->
         <div id="page-home" class="page">
@@ -2014,7 +1500,7 @@
         buatChart('homeOverviewChart', {
           type: 'line',
           data: {
-            labels: ctx.seriesPeriods.map(labelPeriode),
+            labels: ctx.seriesLabels,
             datasets: [garis('Aset 1', 'Aset', WARNA.hijau), garis('DPK 1', 'DPK', WARNA.teal), garis('Pby 1', 'Pembiayaan', WARNA.ungu)]
           },
           options: {

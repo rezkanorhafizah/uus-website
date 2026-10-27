@@ -11,8 +11,23 @@ dalam file halaman itu (`<style>` / `<script>`), tidak ada lagi `css.html` / `ap
 | File | Isi |
 |---|---|
 | `Kode.gs` | Backend: `doGet`, login + token sesi, pembaca sheet (`getDataBundle`), cache |
-| `Index.html` | Kerangka (sidebar, topbar, filter), CSS & logika bersama (menu, filter, navigasi, helper chart & tabel), halaman **Ringkasan Eksekutif**, dan `include()` semua halaman lain |
+| `Index.html` | Kerangka (topbar), CSS & logika bersama (pemuatan data, pindah halaman, helper chart & tabel), halaman **Ringkasan Eksekutif**, dan `include()` semua halaman lain |
 | `login.html` | Halaman login |
+| `navigation.html` | Sidebar: logo/judul, CSS sidebar, **daftar menu (`MENU_CONFIG`)** dan logika buka/tutup menu |
+| `filter.html` | Filter utama untuk semua halaman: Tanggal Data, Tahun (checkbox), Series Data, Konsolidasi Cabang, Unit Kerja |
+
+### Mengatur menu sidebar (`navigation.html`)
+Edit `MENU_CONFIG` di bagian `<script>`: urutan array = urutan di sidebar.
+- Menu utama: `{ id, title, icon, items }` — `icon` memakai nama ikon [Lucide](https://lucide.dev/icons).
+- Sub-menu: `{ name, page }` — `page` = nama file halaman (mis. `'giro'` → `giro.html`).
+- Tambahkan `hidden: true` untuk menyembunyikan menu / sub-menu tanpa menghapusnya.
+- Logo, judul "Unit Usaha Syariah", dan teks "Menu Navigasi" diubah langsung di markup `<aside>`; lebar sidebar di `--sidebar-width`.
+
+### Filter
+- **Tanggal Data**: posisi bulan untuk KPI, leaderboard, dan tabel.
+- **Tahun** (checkbox, bisa pilih beberapa): tahun yang ditampilkan di grafik trend / realisasi. Minimal satu tahun harus dicentang.
+- **Series Data**: `Triwulanan` (TW I–IV, akhir Mar/Jun/Sep/Des), `Semester` (Smt I–II, akhir Jun/Des), `Tahunan` (akhir Des).
+  Posisi bulan pada Tanggal Data selalu ikut sebagai titik terakhir, mis. `Agt 2026` bila belum akhir triwulan.
 
 | Menu | File | Sheet |
 |---|---|---|
@@ -33,12 +48,12 @@ PAGES.giro = halamanIndikator({ page: 'giro', metric: 'Giro', sheet: 'Gir 1', fm
 ### Menambah halaman baru
 1. Salin salah satu file indikator (mis. `giro.html`) menjadi `namabaru.html`, ganti semua `giro` dengan `namabaru`, sesuaikan sheet & judul.
 2. Tambahkan `<?!= include('namabaru'); ?>` di `Index.html`.
-3. Tambahkan `{ name: '...', page: 'namabaru' }` di `MENU_CONFIG` (Index.html).
+3. Tambahkan `{ name: '...', page: 'namabaru' }` di `MENU_CONFIG` (navigation.html).
 
 ## Cara Pasang
 
 1. Unggah `Data_Mentah.xlsx` ke Google Drive → buka dengan Google Spreadsheet (File → Simpan sebagai Google Spreadsheet).
-2. Di Spreadsheet: **Ekstensi → Apps Script**. Buat file dengan nama persis seperti tabel di atas (37 file HTML)
+2. Di Spreadsheet: **Ekstensi → Apps Script**. Buat file dengan nama persis seperti tabel di atas (39 file HTML)
    (`Kode.gs` sebagai *Script*, sisanya sebagai *HTML*, tanpa ekstensi `.html` saat memberi nama), lalu salin isinya.
    - Bila script dibuat terpisah (standalone), isi `CONFIG.SPREADSHEET_ID` di `Kode.gs`.
 3. **Terapkan → Deployment baru → Aplikasi web**. Jalankan sebagai: *Saya*; Akses: sesuai kebutuhan.
