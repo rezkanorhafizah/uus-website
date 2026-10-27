@@ -209,20 +209,10 @@
     tahunDikenal: new Set()     // tahun yang pernah muncul (tahun baru otomatis dicentang)
   };
 
-  /* ---------- Periode & label series ---------- */
+  /* ---------- Periode series ---------- */
   function periodeSesuaiSeries(semua, pTerpilih, series, tahun) {
     const bulan = SERIES_BULAN[series] || SERIES_BULAN.Triwulanan;
     return semua.filter(p => p <= pTerpilih && tahun.has(p.slice(0, 4)) && (bulan.includes(p.slice(5)) || p === pTerpilih));
-  }
-
-  /** "TW III 2026", "Smt I 2026", "2025"; posisi di luar akhir periode memakai label bulan. */
-  function labelSeries(p, series) {
-    const [y, m] = p.split('-');
-    const b = Number(m);
-    if (series === 'Triwulanan' && b % 3 === 0) return `TW ${['I', 'II', 'III', 'IV'][b / 3 - 1]} ${y}`;
-    if (series === 'Semester' && b % 6 === 0) return `Smt ${b === 6 ? 'I' : 'II'} ${y}`;
-    if (series === 'Tahunan' && b === 12) return y;
-    return labelPeriode(p);
   }
 
   /* ---------- Tanggal Data ---------- */
@@ -361,7 +351,7 @@
       label: labelPeriode(p),
       periods: semua,
       seriesPeriods,
-      seriesLabels: seriesPeriods.map(x => labelSeries(x, series)),
+      seriesLabels: seriesPeriods.map(labelPeriode),   // nama periode real, mis. Mar 2025, Jun 2025
       anggota: anggotaKonsolidasi(konsol),
       info: `${entity} • ${labelPeriode(p)} • Series ${series} • Tahun ${ringkasTahun()}`
     };
