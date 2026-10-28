@@ -1,0 +1,230 @@
+<!-- ================= FILE: hlekspansi.html — Highlight Ekspansi & Run Off =================
+     Rancangan: KPI Nom & NOA Ekspansi dan Nom Run Off (sesuai Tanggal Data) •
+     Trend Ekspansi & Run Off Total Pembiayaan • Komposisi Ekspansi & Run Off per
+     kategori debitur (Korporate/UMKM/Konsumer) • Trend Ekspansi & Run Off Korporate,
+     UMKM, Konsumer • Trend NOA Ekspansi Total, Korporate, UMKM, Konsumer.
+     Ekspansi & run off adalah angka bulanan (arus), jadi pada series Triwulanan /
+     Semester / Tahunan grafik menampilkan JUMLAH bulan-bulan dalam periode tersebut. -->
+<style>
+  #page-hlekspansi { --accent: var(--card-purple); }
+
+  .eks-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+
+  .eks-kpi {
+    border-radius: 16px;
+    padding: 18px 22px;
+    color: #ffffff;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .eks-kpi.bg-eks    { background: linear-gradient(135deg, #6343c6 0%, #432996 100%); }
+  .eks-kpi.bg-runoff { background: linear-gradient(135deg, #ea8010 0%, #c46404 100%); }
+  .eks-kpi.bg-net    { background: linear-gradient(135deg, #0a7340 0%, #06522c 100%); }
+
+  .eks-kpi-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    opacity: 0.92;
+  }
+
+  .eks-kpi-row {
+    display: flex;
+    gap: 26px;
+    flex-wrap: wrap;
+  }
+
+  .eks-kpi-row .lbl {
+    display: block;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    opacity: 0.82;
+    margin-bottom: 2px;
+  }
+
+  .eks-kpi-row .val {
+    font-size: 21px;
+    font-weight: 700;
+  }
+
+  .eks-kpi-sub {
+    font-size: 10.5px;
+    opacity: 0.85;
+    border-top: 1px solid rgba(255, 255, 255, 0.18);
+    padding-top: 8px;
+  }
+
+  @media (max-width: 1100px) {
+    .eks-kpi-grid { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div id="page-hlekspansi" class="page">
+  <div class="page-head">
+    <div class="page-head-left">
+      <span class="page-tag">HIGHLIGHT KINERJA: EKSPANSI & RUN OFF</span>
+      <span class="page-sub-info" id="hle-info">-</span>
+    </div>
+    <button class="btn-back-highlight" onclick="bukaHalamanHighlight()">
+      <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i><span>Kembali ke Ringkasan</span>
+    </button>
+  </div>
+
+  <!-- KPI (data sesuai Tanggal Data) -->
+  <div class="eks-kpi-grid">
+    <div class="eks-kpi bg-eks">
+      <div class="eks-kpi-head"><span>Ekspansi Pembiayaan</span><i data-lucide="trending-up" style="width:16px;height:16px;"></i></div>
+      <div class="eks-kpi-row">
+        <div><span class="lbl">Nominal</span><span class="val" id="hle-eks-nom">-</span></div>
+        <div><span class="lbl">NOA</span><span class="val" id="hle-eks-noa">-</span></div>
+      </div>
+      <div class="eks-kpi-sub" id="hle-eks-sub">-</div>
+    </div>
+    <div class="eks-kpi bg-runoff">
+      <div class="eks-kpi-head"><span>Run Off Pembiayaan</span><i data-lucide="trending-down" style="width:16px;height:16px;"></i></div>
+      <div class="eks-kpi-row">
+        <div><span class="lbl">Nominal</span><span class="val" id="hle-ro-nom">-</span></div>
+      </div>
+      <div class="eks-kpi-sub" id="hle-ro-sub">-</div>
+    </div>
+    <div class="eks-kpi bg-net">
+      <div class="eks-kpi-head"><span>Net Ekspansi (Ekspansi − Run Off)</span><i data-lucide="scale" style="width:16px;height:16px;"></i></div>
+      <div class="eks-kpi-row">
+        <div><span class="lbl">Nominal</span><span class="val" id="hle-net-nom">-</span></div>
+      </div>
+      <div class="eks-kpi-sub" id="hle-net-sub">-</div>
+    </div>
+  </div>
+
+  <!-- TREND TOTAL PEMBIAYAAN -->
+  <div class="chart-card">
+    <div class="chart-card-header">
+      <h3><i data-lucide="line-chart" style="width:18px;height:18px;color:var(--accent);"></i><span>Trend Ekspansi & Run Off Nominal Total Pembiayaan</span></h3>
+      <span class="chart-badge hle-badge-series">-</span>
+    </div>
+    <div class="canvas-line-wrap" style="height: 290px;"><canvas id="hleTrendTotal"></canvas></div>
+  </div>
+
+  <!-- KOMPOSISI -->
+  <div class="chart-card">
+    <div class="chart-card-header">
+      <h3><i data-lucide="pie-chart" style="width:18px;height:18px;color:var(--accent);"></i><span>Komposisi Ekspansi & Run Off Pembiayaan (Nominal)</span></h3>
+      <span class="chart-badge" id="hle-badge-komposisi">-</span>
+    </div>
+    <div class="grid-2">
+      <div class="mini-card">
+        <div class="mini-card-head"><div><strong>Komposisi Ekspansi</strong><small>Per kategori debitur • Korporate, UMKM, Konsumer</small></div></div>
+        <div class="canvas-donut-wrap"><canvas id="hleDonutEks"></canvas></div>
+      </div>
+      <div class="mini-card">
+        <div class="mini-card-head"><div><strong>Komposisi Run Off</strong><small>Per kategori debitur • Korporate, UMKM, Konsumer</small></div></div>
+        <div class="canvas-donut-wrap"><canvas id="hleDonutRo"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TREND PER KATEGORI -->
+  <div class="chart-card">
+    <div class="chart-card-header">
+      <h3><i data-lucide="building-2" style="width:18px;height:18px;color:var(--accent);"></i><span>Trend Ekspansi & Run Off Korporate Nominal</span></h3>
+      <span class="chart-badge hle-badge-series">-</span>
+    </div>
+    <div class="canvas-line-wrap"><canvas id="hleTrendKorp"></canvas></div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-card-header">
+      <h3><i data-lucide="store" style="width:18px;height:18px;color:var(--accent);"></i><span>Trend Ekspansi & Run Off UMKM Nominal</span></h3>
+      <span class="chart-badge hle-badge-series">-</span>
+    </div>
+    <div class="canvas-line-wrap"><canvas id="hleTrendUmkm"></canvas></div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-card-header">
+      <h3><i data-lucide="shopping-bag" style="width:18px;height:18px;color:var(--accent);"></i><span>Trend Ekspansi & Run Off Konsumer Nominal</span></h3>
+      <span class="chart-badge hle-badge-series">-</span>
+    </div>
+    <div class="canvas-line-wrap"><canvas id="hleTrendKons"></canvas></div>
+  </div>
+
+  <!-- TREND NOA EKSPANSI -->
+  <div class="chart-card">
+    <div class="chart-card-header">
+      <h3><i data-lucide="users" style="width:18px;height:18px;color:var(--accent);"></i><span>Trend NOA Ekspansi Total Pembiayaan, Korporate, UMKM, Konsumer</span></h3>
+      <span class="chart-badge hle-badge-series">-</span>
+    </div>
+    <div class="canvas-line-wrap" style="height: 290px;"><canvas id="hleTrendNoa"></canvas></div>
+  </div>
+</div>
+
+<script>
+  // Sumber data: "<Nama Sheet>|<Nama Kolom>" (lihat Kode.gs). Ganti di sini bila nama sheet/kolom berubah.
+  const HLE_SHEET = {
+    eks:   { total: 'Eks Pby|Eks Pby', korp: 'Eks Pby|Eks Korp', umkm: 'Eks Pby|Eks UMKM', kons: 'Eks Pby|Eks Kons' },
+    noa:   { total: 'NOA Eks Pby|NOA Eks Pby', korp: 'NOA Eks Pby|NOA Eks Korp', umkm: 'NOA Eks Pby|NOA Eks UMKM', kons: 'NOA Eks Pby|NOA Eks Kons' },
+    ro:    { total: 'Run Off|Runoff Pby', korp: 'Run Off|Runoff Korp', umkm: 'Run Off|Runoff UMKM', kons: 'Run Off|Runoff Kons' }
+  };
+
+  PAGES.hlekspansi = {
+    title: () => 'HIGHLIGHT KINERJA / EKSPANSI & RUN OFF',
+    primary: () => HLE_SHEET.eks.total,
+    sheets: () => [].concat(...['eks', 'noa', 'ro'].map(g => Object.values(HLE_SHEET[g]))),
+
+    render(ctx) {
+      const e = ctx.entity, p = ctx.p;
+      setTeks('hle-info', ctx.info);
+
+      // KPI: nilai bulan pada Tanggal Data + akumulasi sejak Januari (Ytd)
+      const ytd = sheet => nilaiAlir(sheet, e, p, 'Tahunan');
+      const eksNom = nilai(HLE_SHEET.eks.total, e, p);
+      const roNom = nilai(HLE_SHEET.ro.total, e, p);
+      const selisih = (a, b) => (a === null && b === null) ? null : (a || 0) - (b || 0);
+      setTeks('hle-eks-nom', fmtRp(eksNom));
+      setTeks('hle-eks-noa', fmtNum(nilai(HLE_SHEET.noa.total, e, p)));
+      setTeks('hle-eks-sub', `Ytd ${ctx.label}: ${fmtRp(ytd(HLE_SHEET.eks.total))} • NOA ${fmtNum(ytd(HLE_SHEET.noa.total))}`);
+      setTeks('hle-ro-nom', fmtRp(roNom));
+      setTeks('hle-ro-sub', `Ytd ${ctx.label}: ${fmtRp(ytd(HLE_SHEET.ro.total))}`);
+      setTeks('hle-net-nom', fmtRp(selisih(eksNom, roNom)));
+      setTeks('hle-net-sub', `Ytd ${ctx.label}: ${fmtRp(selisih(ytd(HLE_SHEET.eks.total), ytd(HLE_SHEET.ro.total)))}`);
+
+      const ketSeries = ctx.series === 'Bulanan' ? 'Series: Bulanan' : `Series: ${ctx.series} • jumlah per periode`;
+      document.querySelectorAll('.hle-badge-series').forEach(el => { el.textContent = ketSeries; });
+
+      const garisEksRo = kat => [
+        { sheet: HLE_SHEET.eks[kat], label: 'Ekspansi', color: WARNA.ungu, fmt: 'rp' },
+        { sheet: HLE_SHEET.ro[kat], label: 'Run Off', color: WARNA.oranye, fmt: 'rp' }
+      ];
+      renderTrendMulti('hleTrendTotal', ctx, garisEksRo('total'), { alir: true });
+      renderTrendMulti('hleTrendKorp', ctx, garisEksRo('korp'), { alir: true });
+      renderTrendMulti('hleTrendUmkm', ctx, garisEksRo('umkm'), { alir: true });
+      renderTrendMulti('hleTrendKons', ctx, garisEksRo('kons'), { alir: true });
+
+      setTeks('hle-badge-komposisi', `${ctx.entity} • ${ctx.label}`);
+      const bagian = g => [
+        { label: 'Korporate', sheet: HLE_SHEET[g].korp, color: WARNA.biru },
+        { label: 'UMKM', sheet: HLE_SHEET[g].umkm, color: WARNA.teal },
+        { label: 'Konsumer', sheet: HLE_SHEET[g].kons, color: WARNA.ungu }
+      ];
+      renderDonut('hleDonutEks', ctx, bagian('eks'), 'rp');
+      renderDonut('hleDonutRo', ctx, bagian('ro'), 'rp');
+
+      renderTrendMulti('hleTrendNoa', ctx, [
+        { sheet: HLE_SHEET.noa.total, label: 'Total Pembiayaan', color: WARNA.hijau, fmt: 'num' },
+        { sheet: HLE_SHEET.noa.korp, label: 'Korporate', color: WARNA.biru, fmt: 'num' },
+        { sheet: HLE_SHEET.noa.umkm, label: 'UMKM', color: WARNA.teal, fmt: 'num' },
+        { sheet: HLE_SHEET.noa.kons, label: 'Konsumer', color: WARNA.ungu, fmt: 'num' }
+      ], { alir: true });
+    }
+  };
+</script>

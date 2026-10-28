@@ -2,21 +2,26 @@
  * ================================================================
  *  DASHBOARD DIVISI USAHA SYARIAH — BACKEND (Google Apps Script)
  * ================================================================
- *  Struktur file HTML (semua di-include dari Index.html):
- *    css.html          : stylesheet
+ *  Struktur file HTML (satu file per halaman; dimuat lewat include() dari Index.html):
+ *    Index.html        : kerangka + CSS/JS bersama + Ringkasan Eksekutif
  *    login.html        : halaman login
  *    navigation.html   : sidebar & daftar menu (MENU_CONFIG)
  *    filter.html       : filter utama (tanggal, tahun, series, konsolidasi, unit)
- *    home.html         : highlight kinerja utama (ringkasan)
- *    hlaset.html       : highlight Aset & Laba (+ rasio keuangan)
- *    hldpk.html        : highlight Dana Pihak Ketiga
- *    hlpembiayaan.html : highlight Pembiayaan
- *    aset.html         : detail satu indikator (dipakai menu sidebar)
- *    app.html          : logika inti (filter, navigasi, helper chart)
+ *    Highlight Kinerja : hlaset, hldpk, hlpembiayaan, hlekspansi, hlperingkat
+ *    Aset & Laba       : aset, laba, pendopr, byopr, penydana, bybaghas, fbi
+ *    Dana Pihak Ketiga : dpk, giro, tabungan, deposito, noadpk
+ *    Pembiayaan        : pembiayaan, korporate, umkm, konsumer, modalkerja,
+ *                        investasi, noapby, ekskur, poskur, eksflpp, posflpp
+ *    NPF               : npftotal, npfkorp, npfumkm, npfkons, npfkur, npfflpp
+ *    Rasio             : roa, ni, fdr, bopo, npf, casa, far, pctfbi, pctumkm
  *
  *  Sumber data: sheet berformat "<Indikator> 1" dari data mentah
  *  (kolom: Periode | Periode Date | Unit Kerja | <Nilai> | Target |
  *  Kelompok Unit Kerja | YoY | Ytd | Mtm | RBB/C).
+ *
+ *  Sheet dengan beberapa kolom nilai (mis. "Eks Pby", "Run Off", "NPF UMKM")
+ *  diminta dengan format "<Nama Sheet>|<Nama Kolom>", mis. "NPF UMKM|NPF Nom".
+ *  Sheet "Peringkat AO" memakai kolom "Nama AO" sebagai pengganti "Unit Kerja".
  */
 
 var CONFIG = {
@@ -200,15 +205,17 @@ function toNumber_(val) {
 
 var STD_COLS_ = ['periode', 'periode date', 'unit kerja', 'target', 'kelompok unit kerja',
   'year before', 'date before', 'month before', 'yoy', 'ytd', 'mtm', 'rbb/c',
-  'tahun', 'bulan', 'periode sort'];
+  'tahun', 'bulan', 'periode sort', 'nama ao', '% achievement'];
 
 /**
  * Membaca sheet "<Indikator> 1" dan mengubahnya menjadi baris ringkas:
  * { p: '2026-09', u: unit kerja, k: kelompok, v: nilai, t: target,
  *   yoy, ytd, mtm, rbb } — persentase dalam bentuk desimal (0,05 = 5%).
+ * @param {Array[]} values   isi sheet (getDataRange().getValues())
+ * @param {string=} kolomNilai  nama kolom nilai; kosong = kolom non-standar pertama
+ * @return {Object[]|null}  null bila kolomNilai tidak ditemukan
  */
-function normalizeSheet_(sheet) {
-  var values = sheet.getDataRange().getValues();
+function normalizeSheet_(values, kolomNilai) {
   if (values.length <= 1) return [];
 
   var headers = values[0].map(function(h) { return h.toString().trim().toLowerCase(); });
@@ -217,11 +224,25 @@ function normalizeSheet_(sheet) {
   var cPer = col('periode'), cDate = col('periode date'), cUnit = col('unit kerja');
   var cTarget = col('target'), cKel = col('kelompok unit kerja');
   var cYoy = col('yoy'), cYtd = col('ytd'), cMtm = col('mtm'), cRbb = col('rbb/c');
-  var cVal = -1;
-  for (var h = 0; h < headers.length; h++) {
-    if (headers[h] && STD_COLS_.indexOf(headers[h]) === -1) { cVal = h; break; }
+
+  // Sheet peringkat AO: nama AO menggantikan unit kerja, % Achievement menggantikan RBB/C,
+  // dan "Kelompok Unit Kerja" (kantor AO) disimpan di field c, bukan k.
+  var isAo = cUnit === -1 && col('nama ao') !== -1;
+  if (isAo) {
+    cUnit = col('nama ao');
+    if (cRbb === -1) cRbb = col('% achievement');
   }
-  if (cVal === -1) cVal = 3;
+
+  var cVal = -1;
+  if (kolomNilai) {
+    cVal = col(kolomNilai.toString().trim().toLowerCase());
+    if (cVal === -1) return null;
+  } else {
+    for (var h = 0; h < headers.length; h++) {
+      if (headers[h] && STD_COLS_.indexOf(headers[h]) === -1) { cVal = h; break; }
+    }
+    if (cVal === -1) cVal = 3;
+  }
 
   function pick(row, idx) { return idx === -1 ? null : toNumber_(row[idx]); }
 
@@ -232,10 +253,12 @@ function normalizeSheet_(sheet) {
     var p = toPeriodKey_(cDate === -1 ? '' : r[cDate], cPer === -1 ? '' : r[cPer]);
     if (!unit || !p) continue;
 
+    var kel = cKel === -1 ? '' : (r[cKel] || '').toString().trim();
     rows.push({
       p: p,
       u: unit,
-      k: cKel === -1 ? '' : (r[cKel] || '').toString().trim(),
+      k: isAo ? '' : kel,
+      c: isAo ? kel : undefined,
       v: pick(r, cVal),
       t: pick(r, cTarget),
       yoy: pick(r, cYoy),
@@ -252,7 +275,7 @@ function normalizeSheet_(sheet) {
 /**
  * Mengambil beberapa sheet sekaligus dalam satu panggilan.
  * @param {string} token   token sesi dari checkLogin
- * @param {string[]} sheetNames  daftar nama sheet, mis. ['DPK 1', 'NOA DPK 1']
+ * @param {string[]} sheetNames  daftar nama sheet, mis. ['DPK 1', 'NOA DPK 1', 'Run Off|Runoff Pby']
  * @param {boolean} force  true = abaikan cache server
  * @return {{success:boolean, sheets:Object, missing:string[], lastUpdated:string}}
  */
@@ -267,6 +290,7 @@ function getDataBundle(token, sheetNames, force) {
     var cache = CacheService.getScriptCache();
     var sheets = {};
     var missing = [];
+    var isiSheet = {}; // nama sheet -> values, agar sheet multi-kolom dibaca sekali
 
     (sheetNames || []).forEach(function(name) {
       var cacheKey = 'sh_' + normName_(name);
@@ -275,10 +299,16 @@ function getDataBundle(token, sheetNames, force) {
         if (cached) { sheets[name] = JSON.parse(cached); return; }
       }
 
-      var sheet = findSheetByFuzzyName(ss, name);
-      if (!sheet) { missing.push(name); return; }
+      var bagian = name.toString().split('|');
+      var namaSheet = bagian[0].trim();
+      if (!(namaSheet in isiSheet)) {
+        var sheet = findSheetByFuzzyName(ss, namaSheet);
+        isiSheet[namaSheet] = sheet ? sheet.getDataRange().getValues() : null;
+      }
+      if (!isiSheet[namaSheet]) { missing.push(name); return; }
 
-      var rows = normalizeSheet_(sheet);
+      var rows = normalizeSheet_(isiSheet[namaSheet], bagian[1]);
+      if (!rows) { missing.push(name); return; }
       sheets[name] = rows;
       var json = JSON.stringify(rows);
       if (json.length < 95000) cache.put(cacheKey, json, CONFIG.CACHE_SECONDS);
