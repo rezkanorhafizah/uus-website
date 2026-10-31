@@ -32,10 +32,11 @@ Edit `MENU_CONFIG` di bagian `<script>`: urutan array = urutan di sidebar.
 
 | Menu | File | Sheet |
 |---|---|---|
-| Highlight Kinerja | `hlaset.html`, `hldpk.html`, `hlpembiayaan.html` | lihat tabel Sumber Data |
+| Highlight Kinerja | `hlaset.html`, `hldpk.html`, `hlpembiayaan.html`, `hlekspansi.html`, `hlperingkat.html` | lihat tabel Sumber Data |
 | Aset & Laba | `aset.html`, `laba.html`, `pendopr.html`, `byopr.html`, `penydana.html`, `bybaghas.html`, `fbi.html` | `Aset 1`, `Laba 1`, `Pend Opr 1`, `By Opr 1`, `Peny Dana 1`, `By BagHas 1`, `FBI 1` |
 | Dana Pihak Ketiga | `dpk.html`, `giro.html`, `tabungan.html`, `deposito.html`, `noadpk.html` | `DPK 1`, `Gir 1`, `Tab 1`, `Depo 1`, `NOA DPK 1` |
 | Pembiayaan | `pembiayaan.html`, `korporate.html`, `umkm.html`, `konsumer.html`, `modalkerja.html`, `investasi.html`, `noapby.html`, `ekskur.html`, `poskur.html`, `eksflpp.html`, `posflpp.html` | `Pby 1`, `Korp 1`, `UMKM 1`, `Kons 1`, `MK 1`, `Inv 1`, `NOA Pby 1`, `Eksp KUR 1`, `Pos KUR 1`, `Eks FLPP 1`, `Pos FLPP 1` |
+| NPF | `npftotal.html`, `npfkorp.html`, `npfumkm.html`, `npfkons.html`, `npfkur.html`, `npfflpp.html` | `NPF Total Pembiayaan`, `NPF Korporate`, `NPF UMKM`, `NPF Kons`, `NPF KUR`, `NPF FLPP` (kolom `% NPF`, `NPF Nom`, `NOA`) |
 | Rasio | `roa.html`, `ni.html`, `fdr.html`, `bopo.html`, `npf.html`, `casa.html`, `far.html`, `pctfbi.html`, `pctumkm.html` | `ROA 1`, `NI 1`, `FDR 1`, `BOPO 1`, `NPF 1`, `CASA 1`, `FAR 1`, `%FBI 1`, `%UMKM 1` |
 
 Halaman indikator (Aset, Giro, ROA, dst) memakai layout 5 KPI • Trend • Realisasi vs Target •
@@ -54,7 +55,7 @@ PAGES.giro = halamanIndikator({ page: 'giro', metric: 'Giro', sheet: 'Gir 1', fm
 ## Cara Pasang
 
 1. Unggah `Data_Mentah.xlsx` ke Google Drive → buka dengan Google Spreadsheet (File → Simpan sebagai Google Spreadsheet).
-2. Di Spreadsheet: **Ekstensi → Apps Script**. Buat file dengan nama persis seperti tabel di atas (39 file HTML)
+2. Di Spreadsheet: **Ekstensi → Apps Script**. Buat file dengan nama persis seperti tabel di atas (47 file HTML)
    (`Kode.gs` sebagai *Script*, sisanya sebagai *HTML*, tanpa ekstensi `.html` saat memberi nama), lalu salin isinya.
    - Bila script dibuat terpisah (standalone), isi `CONFIG.SPREADSHEET_ID` di `Kode.gs`.
 3. **Terapkan → Deployment baru → Aplikasi web**. Jalankan sebagai: *Saya*; Akses: sesuai kebutuhan.
@@ -73,6 +74,18 @@ YoY/Ytd/Mtm/RBB/C diambil dari sheet; bila kosong dihitung otomatis dari periode
 | Aset & Laba | `Aset 1`, `Laba 1`, `ROA 1`, `FDR 1`, `BOPO 1`, `NPF 1`, `NI 1`, `CASA 1` |
 | DPK | `DPK 1`, `NOA DPK 1`, `Gir 1`, `Tab 1`, `Depo 1`, `NOA Gir 1`, `NOA Tab 1`, `NOA Depo 1` |
 | Pembiayaan | `Pby 1`, `NOA Pby 1`, `NPF 1`, `MK 1`, `Inv 1`, `Kons 1`, `Korp 1`, `UMKM 1`, `NOA Korp 1`, `NOA UMKM 1`, `NOA Kons 1` |
+| Ekspansi & Run Off | `Eks Pby` (Eks Pby/Korp/UMKM/Kons), `NOA Eks Pby`, `Run Off` (Runoff Pby/Korp/UMKM/Kons) |
+| Peringkat Unit Kerja & AO | sheet indikator terpilih (`Aset 1`, `Pby 1`, `DPK 1`, dst) + `Peringkat AO` (Nama AO, Aktual, Target, % Achievement) |
+
+### Sheet dengan beberapa kolom nilai
+Sheet seperti `Eks Pby`, `Run Off`, dan `NPF ...` berisi beberapa kolom nilai sekaligus. Halaman memintanya
+dengan format `"<Nama Sheet>|<Nama Kolom>"`, mis. `"NPF UMKM|NPF Nom"` atau `"Run Off|Runoff Korp"` (lihat `Kode.gs`).
+
+- **Ekspansi & Run Off** adalah angka bulanan (arus). Pada series Triwulanan / Semester / Tahunan, grafik
+  menampilkan **jumlah** bulan dalam periode tersebut; kartu KPI menampilkan nilai bulan Tanggal Data + Ytd.
+- **Peringkat AO** baru tersedia satu sheet tanpa kolom indikator, jadi Pembiayaan UMKM, Konsumer, dan DPK
+  memakai sheet yang sama. Bila nanti dipisah per indikator, ganti nama sheet di `HLR_DATA` (`hlperingkat.html`).
+  AO disaring sesuai filter konsolidasi / unit kerja berdasarkan nama kantornya (mis. `9935-KCPS PARINGIN`).
 
 ### Sheet yang belum ada di data mentah
 

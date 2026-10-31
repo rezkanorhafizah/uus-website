@@ -1,0 +1,284 @@
+<!-- ================= FILE: hlperingkat.html — Highlight Peringkat Unit Kerja & AO =================
+     Rancangan: pilihan Data (Aset, Laba, Pembiayaan, DPK, dst) • Tabel peringkat unit kerja
+     (Aktual, Target, % RBB/C) diurutkan dari % RBB/C tertinggi • Khusus Pembiayaan UMKM,
+     Konsumer dan Total DPK: tabel peringkat AO diurutkan dari % achievement tertinggi.
+     Data mengikuti filter Tanggal Data, Konsolidasi Cabang dan Unit Kerja. -->
+<style>
+  #page-hlperingkat { --accent: #b45309; }
+
+  .rank-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 12px 16px;
+    border: 1px solid rgba(10, 115, 64, 0.08);
+  }
+
+  .rank-toolbar label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--primary-green);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+
+  .rank-toolbar select {
+    min-width: 240px;
+    border: 1px solid #d1e2d7;
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1e293b;
+    background: #f8fafc;
+    outline: none;
+    cursor: pointer;
+  }
+
+  .rank-toolbar .hint {
+    font-size: 11.5px;
+    color: var(--text-muted);
+  }
+
+  table.rank-table td.rank-col,
+  table.rank-table th.rank-col {
+    width: 90px;
+    text-align: center;
+  }
+
+  .rank-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 30px;
+    height: 30px;
+    padding: 0 8px;
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 12.5px;
+    background: #f1f5f9;
+    color: #475569;
+  }
+
+  .rank-badge.rank-1 { background: #fde68a; color: #92400e; }
+  .rank-badge.rank-2 { background: #e2e8f0; color: #334155; }
+  .rank-badge.rank-3 { background: #fed7aa; color: #9a3412; }
+
+  .rank-sub {
+    display: block;
+    font-size: 10.5px;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  .rank-bar {
+    position: relative;
+    height: 6px;
+    width: 90px;
+    margin-left: auto;
+    margin-top: 4px;
+    border-radius: 4px;
+    background: #f1f5f9;
+    overflow: hidden;
+  }
+
+  .rank-bar span {
+    position: absolute;
+    inset: 0 auto 0 0;
+    border-radius: 4px;
+  }
+
+  .rank-catatan {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 10px;
+  }
+</style>
+
+<div id="page-hlperingkat" class="page">
+  <div class="page-head">
+    <div class="page-head-left">
+      <span class="page-tag">HIGHLIGHT KINERJA: PERINGKAT UNIT KERJA & AO</span>
+      <span class="page-sub-info" id="hlr-info">-</span>
+    </div>
+    <button class="btn-back-highlight" onclick="bukaHalamanHighlight()">
+      <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i><span>Kembali ke Ringkasan</span>
+    </button>
+  </div>
+
+  <div class="rank-toolbar">
+    <label for="hlrData"><i data-lucide="database" style="width:13px;height:13px;"></i> Data</label>
+    <select id="hlrData" onchange="gantiDataPeringkat()"></select>
+    <span class="hint">Peringkat dihitung pada Tanggal Data yang dipilih.</span>
+  </div>
+
+  <!-- PERINGKAT UNIT KERJA -->
+  <div class="table-card">
+    <div class="chart-card-header">
+      <h3><i data-lucide="trophy" style="width:18px;height:18px;color:var(--accent);"></i><span id="hlr-judul-unit">Peringkat Unit Kerja</span></h3>
+      <span class="chart-badge" id="hlr-badge-unit">-</span>
+    </div>
+    <div class="table-responsive">
+      <table class="realisasi-table rank-table">
+        <thead><tr><th class="rank-col">Peringkat</th><th>Nama Unit Kerja</th><th class="num-col">Aktual</th><th class="num-col">Target</th><th class="num-col">% RBB/C</th></tr></thead>
+        <tbody id="hlrTableUnit"></tbody>
+      </table>
+    </div>
+    <div class="rank-catatan">Diurutkan berdasarkan % RBB/C tertinggi. Unit tanpa target diletakkan di bawah.</div>
+  </div>
+
+  <!-- PERINGKAT AO (khusus UMKM, Konsumer, DPK) -->
+  <div class="table-card" id="hlr-card-ao">
+    <div class="chart-card-header">
+      <h3><i data-lucide="user-check" style="width:18px;height:18px;color:var(--accent);"></i><span id="hlr-judul-ao">Peringkat AO</span></h3>
+      <span class="chart-badge" id="hlr-badge-ao">-</span>
+    </div>
+    <div class="table-responsive">
+      <table class="realisasi-table rank-table">
+        <thead><tr><th class="rank-col">Peringkat</th><th>Nama AO</th><th class="num-col">Aktual</th><th class="num-col">Target</th><th class="num-col">% Achieve</th></tr></thead>
+        <tbody id="hlrTableAo"></tbody>
+      </table>
+    </div>
+    <div class="rank-catatan" id="hlr-catatan-ao">-</div>
+  </div>
+</div>
+
+<script>
+  // Pilihan "Data". ao = nama sheet peringkat AO (hanya UMKM, Konsumer, DPK).
+  // Data mentah saat ini baru punya satu sheet "Peringkat AO" (tanpa kolom indikator),
+  // jadi ketiganya memakai sheet yang sama. Bila nanti dipisah, cukup ganti nama sheet di sini.
+  const HLR_DATA = [
+    { id: 'aset', label: 'Aset', sheet: 'Aset 1' },
+    { id: 'laba', label: 'Laba', sheet: 'Laba 1' },
+    { id: 'pby', label: 'Total Pembiayaan', sheet: 'Pby 1' },
+    { id: 'korp', label: 'Pembiayaan Korporate', sheet: 'Korp 1' },
+    { id: 'umkm', label: 'Pembiayaan UMKM', sheet: 'UMKM 1', ao: 'Peringkat AO' },
+    { id: 'kons', label: 'Pembiayaan Konsumer', sheet: 'Kons 1', ao: 'Peringkat AO' },
+    { id: 'dpk', label: 'Total DPK', sheet: 'DPK 1', ao: 'Peringkat AO' },
+    { id: 'giro', label: 'Giro', sheet: 'Gir 1' },
+    { id: 'tab', label: 'Tabungan', sheet: 'Tab 1' },
+    { id: 'depo', label: 'Deposito', sheet: 'Depo 1' }
+  ];
+
+  function dataPeringkatAktif() {
+    const sel = document.getElementById('hlrData');
+    if (!sel.options.length) {
+      sel.innerHTML = HLR_DATA.map(d => `<option value="${d.id}">${esc(d.label)}</option>`).join('');
+    }
+    return HLR_DATA.find(d => d.id === sel.value) || HLR_DATA[0];
+  }
+
+  function gantiDataPeringkat() {
+    muatData(false); // memuat sheet yang belum ada, lalu render ulang
+  }
+
+  /** Urutkan dari rasio tertinggi; nilai kosong di bawah. */
+  function urutRasio(items) {
+    return items.sort((a, b) => {
+      const ra = a.rasio === null || a.rasio === undefined ? -Infinity : a.rasio;
+      const rb = b.rasio === null || b.rasio === undefined ? -Infinity : b.rasio;
+      return rb - ra;
+    });
+  }
+
+  function barisPeringkat(items, fmtAktual) {
+    return items.map((it, i) => {
+      const r = i + 1;
+      const pct = it.rasio === null || it.rasio === undefined ? 0 : Math.max(0, Math.min(it.rasio, 1.5)) / 1.5 * 100;
+      const warna = it.rasio !== null && it.rasio >= 1 ? WARNA.hijau : (it.rasio !== null && it.rasio >= 0.8 ? WARNA.oranye : WARNA.merah);
+      return `
+        <tr class="${it.terpilih ? 'row-selected' : ''}">
+          <td class="rank-col"><span class="rank-badge ${r <= 3 ? 'rank-' + r : ''}">${r}</span></td>
+          <td><strong>${esc(it.nama)}</strong>${it.sub ? `<span class="rank-sub">${esc(it.sub)}</span>` : ''}</td>
+          <td class="num-col">${fmtNilai(it.v, fmtAktual)}</td>
+          <td class="num-col">${fmtNilai(it.t, fmtAktual)}</td>
+          <td class="num-col"><strong>${fmtPct(it.rasio)}</strong><div class="rank-bar"><span style="width:${pct}%;background:${warna};"></span></div></td>
+        </tr>`;
+    }).join('');
+  }
+
+  // Singkatan nama kantor di sheet AO yang berbeda dengan nama unit kerja.
+  const HLR_ALIAS_KANTOR = { BJBQMALL: 'BANJARBARUQMALL' };
+
+  function kunciKantor(nama) {
+    const k = (nama || '').toUpperCase()
+      .replace(/^[0-9]+\s*-\s*/, '')     // kode cabang "9935-"
+      .replace(/^ZONASI\s+/, '')
+      .replace(/\b(KCS|KCPS)\b/g, '')
+      .replace(/[^A-Z]/g, '');
+    return HLR_ALIAS_KANTOR[k] || k;
+  }
+
+  /** Mencocokkan kantor AO ("9935-KCPS PARINGIN", "9931-KCPS GATOT SUBROT") dengan unit kerja. */
+  function unitDariKantorAo(kantor) {
+    const ak = kunciKantor(kantor);
+    if (!ak) return null;
+    return anggotaKonsolidasi(ENTITAS_UUS).find(u => {
+      const uk = kunciKantor(u);
+      return uk === ak || uk.startsWith(ak) || ak.startsWith(uk);
+    }) || null;
+  }
+
+  PAGES.hlperingkat = {
+    title: () => 'HIGHLIGHT KINERJA / PERINGKAT UNIT KERJA & AO',
+    primary: () => dataPeringkatAktif().sheet,
+    sheets: () => {
+      const d = dataPeringkatAktif();
+      return d.ao ? [d.sheet, d.ao] : [d.sheet];
+    },
+
+    render(ctx) {
+      const d = dataPeringkatAktif();
+      setTeks('hlr-info', `${ctx.konsol} • ${ctx.label}`);
+
+      // ---------- Peringkat unit kerja ----------
+      setTeks('hlr-judul-unit', `Peringkat Unit Kerja — ${d.label}`);
+      setTeks('hlr-badge-unit', `${ctx.konsol} • ${ctx.label}`);
+      const tbodyUnit = document.getElementById('hlrTableUnit');
+      if (!sheetAda(d.sheet)) {
+        tbodyUnit.innerHTML = `<tr><td colspan="5" class="table-empty">Sheet "${esc(d.sheet)}" belum tersedia di Spreadsheet.</td></tr>`;
+      } else {
+        const items = urutRasio(ctx.anggota.map(u => {
+          const k = kinerja(d.sheet, u, ctx.p);
+          return { nama: u, v: k.v, t: k.t, rasio: k.rbb, terpilih: u === ctx.entity };
+        }).filter(it => it.v !== null));
+        tbodyUnit.innerHTML = items.length
+          ? barisPeringkat(items, 'rp')
+          : '<tr><td colspan="5" class="table-empty">Tidak ada data unit kerja untuk periode ini.</td></tr>';
+      }
+
+      // ---------- Peringkat AO ----------
+      const cardAo = document.getElementById('hlr-card-ao');
+      cardAo.style.display = d.ao ? '' : 'none';
+      if (!d.ao) return;
+
+      setTeks('hlr-judul-ao', `Peringkat AO — ${d.label}`);
+      setTeks('hlr-badge-ao', `${ctx.entity} • ${ctx.label}`);
+      const tbodyAo = document.getElementById('hlrTableAo');
+      if (!sheetAda(d.ao)) {
+        tbodyAo.innerHTML = `<tr><td colspan="5" class="table-empty">Sheet "${esc(d.ao)}" belum tersedia di Spreadsheet.</td></tr>`;
+        setTeks('hlr-catatan-ao', '');
+        return;
+      }
+
+      // Batasi AO sesuai filter konsolidasi / unit kerja bila kantornya dapat dicocokkan.
+      const lingkup = new Set(ctx.entity === ctx.konsol ? ctx.anggota : [ctx.entity]);
+      const semuaPeriode = daftarPeriode(d.ao);
+      const rows = (DATA[d.ao] || []).filter(r => r.p === ctx.p).filter(r => {
+        const unit = unitDariKantorAo(r.c);
+        return !unit || lingkup.has(unit);
+      });
+      const items = urutRasio(rows.map(r => ({ nama: r.u, sub: r.c, v: r.v, t: r.t, rasio: r.rbb !== null && r.rbb !== undefined ? r.rbb : (r.v !== null && r.t ? r.v / r.t : null) })));
+      tbodyAo.innerHTML = items.length
+        ? barisPeringkat(items, 'rp')
+        : `<tr><td colspan="5" class="table-empty">Data AO untuk ${esc(ctx.label)} belum tersedia${semuaPeriode.length ? ' (tersedia: ' + esc(semuaPeriode.map(labelPeriode).join(', ')) + ')' : ''}.</td></tr>`;
+      setTeks('hlr-catatan-ao', `Diurutkan berdasarkan % achievement tertinggi. Sumber: sheet "${d.ao}".`);
+    }
+  };
+</script>

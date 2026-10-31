@@ -572,6 +572,7 @@
     }
 
     .kpi-box.bg-alt { background: linear-gradient(135deg, #0f766e 0%, #115e59 100%); }
+    .kpi-box.bg-npf { background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); }
 
     /* GRID KOMPOSISI (DONUT) */
     .grid-3 {
@@ -1046,6 +1047,79 @@
       });
     }
 
+    /** Bulan awal periode series yang memuat p (mis. Triwulanan, Agt 2026 -> Jul 2026). */
+    function awalPeriodeSeries(p, series) {
+      const [y, m] = p.split('-').map(Number);
+      const panjang = { Bulanan: 1, Triwulanan: 3, Semester: 6, Tahunan: 12 }[series] || 1;
+      const mAwal = Math.floor((m - 1) / panjang) * panjang + 1;
+      return `${y}-${('0' + mAwal).slice(-2)}`;
+    }
+
+    /**
+     * Nilai arus (flow) seperti ekspansi / run off: jumlah bulanan dari awal periode
+     * series sampai p. Bulanan = nilai bulan itu saja.
+     */
+    function nilaiAlir(sheet, unit, p, series) {
+      let total = null;
+      for (let q = awalPeriodeSeries(p, series); q <= p; q = geserPeriode(q, 1)) {
+        const v = nilai(sheet, unit, q);
+        if (v !== null && v !== undefined) total = (total || 0) + v;
+      }
+      return total;
+    }
+
+    /**
+     * Line chart beberapa garis sepanjang periode series.
+     * garis: [{ sheet, label, color, fmt, axis: 'y' | 'y1' | 'y2' }]
+     *   y = sumbu kiri, y1 = sumbu kanan, y2 = sumbu kanan kedua.
+     * opsi.alir = true -> nilai dijumlahkan per periode series (lihat nilaiAlir).
+     */
+    function renderTrendMulti(canvasId, ctx, garis, opsi = {}) {
+      const ambil = (sheet, p) => opsi.alir ? nilaiAlir(sheet, ctx.entity, p, ctx.series) : nilai(sheet, ctx.entity, p);
+      const datasets = garis.map(g => ({
+        label: g.label,
+        data: ctx.seriesPeriods.map(p => ambil(g.sheet, p)),
+        borderColor: g.color,
+        backgroundColor: g.color + '1f',
+        pointBackgroundColor: '#ffffff',
+        pointBorderColor: g.color,
+        pointBorderWidth: 2,
+        pointRadius: 3.5,
+        borderWidth: 2.5,
+        fill: false,
+        tension: 0.3,
+        yAxisID: g.axis || 'y',
+        fmt: g.fmt || 'rp'
+      }));
+      setKosong(canvasId, pesanSheetHilang(garis.map(g => g.sheet)));
+
+      const scales = {};
+      garis.forEach(g => {
+        const ax = g.axis || 'y';
+        if (scales[ax]) return;
+        scales[ax] = {
+          position: ax === 'y' ? 'left' : 'right',
+          grid: { drawOnChartArea: ax === 'y' },
+          title: { display: !!g.judulSumbu, text: g.judulSumbu || '' },
+          ticks: { callback: v => fmtSumbu(v, g.fmt || 'rp') }
+        };
+      });
+
+      buatChart(canvasId, {
+        type: 'line',
+        data: { labels: ctx.seriesLabels, datasets },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: { position: 'top' },
+            tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ${fmtNilai(c.parsed.y, c.dataset.fmt)}` } }
+          },
+          scales
+        }
+      });
+    }
+
     /** Bar Aktual vs Target per periode series + garis % RBB/C. */
     function renderRealisasiTarget(canvasId, sheet, ctx, fmt = 'rp') {
       const ps = ctx.seriesPeriods;
@@ -1076,12 +1150,16 @@
       });
     }
 
-    /** Horizontal bar: urutan realisasi nominal unit kerja dalam konsolidasi terpilih. */
-    function renderLeaderboard(canvasId, sheet, ctx, fmt = 'rp') {
+    /**
+     * Horizontal bar realisasi unit kerja dalam konsolidasi terpilih.
+     * opsi.urut: 'desc' (default, terbesar dulu), 'asc', atau 'unit' (sesuai urutan unit kerja).
+     */
+    function renderLeaderboard(canvasId, sheet, ctx, fmt = 'rp', opsi = {}) {
       const items = ctx.anggota
         .map(u => Object.assign({ unit: u }, kinerja(sheet, u, ctx.p)))
-        .filter(i => i.v !== null)
-        .sort((x, y) => y.v - x.v);
+        .filter(i => i.v !== null);
+      if (opsi.urut === 'asc') items.sort((x, y) => x.v - y.v);
+      else if (opsi.urut !== 'unit') items.sort((x, y) => y.v - x.v);
 
       setKosong(canvasId, pesanSheetHilang([sheet]) || (items.length ? null : 'Tidak ada data unit kerja untuk periode ini'));
       buatChart(canvasId, {
@@ -1186,14 +1264,16 @@
     }
 
     /**
-     * Mengisi tbody tabel realisasi. opsi: { sheet, noaSheet (opsional), fmt }.
-     * Kolom: No | Unit Kerja | Aktual | [NOA] | Target RBB/C | YoY | Ytd | Mtm | % RBB/C
+     * Mengisi tbody tabel realisasi. opsi: { sheet, fmt, noaSheet (opsional),
+     * ekstra (opsional): [{ sheet, fmt }] kolom tambahan setelah Aktual }.
+     * Kolom: No | Unit Kerja | Aktual | [NOA / ekstra] | Target RBB/C | YoY | Ytd | Mtm | % RBB/C
      */
     function renderTabelRealisasi(tbodyId, ctx, opsi) {
       const tbody = document.getElementById(tbodyId);
       if (!tbody) return;
       const fmt = opsi.fmt || 'rp';
-      const kolom = opsi.noaSheet ? 9 : 8;
+      const ekstra = (opsi.ekstra || []).concat(opsi.noaSheet ? [{ sheet: opsi.noaSheet, fmt: 'num' }] : []);
+      const kolom = 8 + ekstra.length;
 
       if (!sheetAda(opsi.sheet)) {
         tbody.innerHTML = `<tr><td colspan="${kolom}" class="table-empty">Sheet "${esc(opsi.sheet)}" belum tersedia di Spreadsheet.</td></tr>`;
@@ -1205,7 +1285,7 @@
         const k = kinerja(opsi.sheet, item.unit, ctx.p);
         const cls = ['row-' + item.tipe];
         if (item.unit === ctx.entity) cls.push('row-selected');
-        const noa = opsi.noaSheet ? `<td class="num-col">${fmtNum(nilai(opsi.noaSheet, item.unit, ctx.p))}</td>` : '';
+        const noa = ekstra.map(e => `<td class="num-col">${fmtNilai(nilai(e.sheet, item.unit, ctx.p), e.fmt || 'rp')}</td>`).join('');
         return `
           <tr class="${cls.join(' ')}">
             <td>${++no}</td>
@@ -1252,6 +1332,52 @@
 
           setTeks(`${id}-badge-table`, `Periode: ${ctx.label}`);
           renderTabelRealisasi(`${id}-table`, ctx, { sheet: cfg.sheet, fmt });
+        }
+      };
+    }
+
+    /* ======================= HALAMAN NPF ======================= */
+    /**
+     * Membuat definisi halaman NPF (npftotal.html, npfumkm.html, dst).
+     * cfg: { page, nama, sheet, warna }. Sheet NPF punya 3 kolom nilai:
+     * "% NPF", "NPF Nom", "NOA" -> diminta sebagai "<sheet>|<kolom>".
+     * ID elemen: <page>-pct / <page>-nom / <page>-noa (KPI), <page>-trend, <page>-target,
+     * <page>-leader, <page>-table, <page>-info, <page>-badge-*.
+     */
+    function halamanNpf(cfg) {
+      const id = cfg.page;
+      const sh = {
+        pct: `${cfg.sheet}|% NPF`,
+        nom: `${cfg.sheet}|NPF Nom`,
+        noa: `${cfg.sheet}|NOA`
+      };
+      return {
+        title: () => `NPF / ${cfg.nama.toUpperCase()} (SHEET: ${cfg.sheet})`,
+        primary: () => sh.pct,
+        sheets: () => [sh.pct, sh.nom, sh.noa],
+
+        render(ctx) {
+          setTeks(`${id}-info`, ctx.info);
+          renderKpi(`${id}-pct`, sh.pct, ctx, 'pct');
+          renderKpi(`${id}-nom`, sh.nom, ctx, 'rp');
+          renderKpi(`${id}-noa`, sh.noa, ctx, 'num');
+
+          setTeks(`${id}-badge-trend`, `Series: ${ctx.series}`);
+          renderTrendMulti(`${id}-trend`, ctx, [
+            { sheet: sh.nom, label: 'Nom NPF', color: cfg.warna || WARNA.merah, fmt: 'rp', axis: 'y', judulSumbu: 'Nominal' },
+            { sheet: sh.noa, label: 'NOA NPF', color: WARNA.oranye, fmt: 'num', axis: 'y1', judulSumbu: 'NOA' },
+            { sheet: sh.pct, label: '% NPF', color: WARNA.biru, fmt: 'pct', axis: 'y2', judulSumbu: '% NPF' }
+          ]);
+
+          setTeks(`${id}-badge-target`, `Series: ${ctx.series}`);
+          renderRealisasiTarget(`${id}-target`, sh.pct, ctx, 'pct');
+          renderLeaderboard(`${id}-leader`, sh.pct, ctx, 'pct', { urut: 'unit' });
+
+          setTeks(`${id}-badge-table`, `Periode: ${ctx.label}`);
+          renderTabelRealisasi(`${id}-table`, ctx, {
+            sheet: sh.pct, fmt: 'pct',
+            ekstra: [{ sheet: sh.nom, fmt: 'rp' }, { sheet: sh.noa, fmt: 'num' }]
+          });
         }
       };
     }
@@ -1423,6 +1549,8 @@
         <?!= include('hlaset'); ?>
         <?!= include('hldpk'); ?>
         <?!= include('hlpembiayaan'); ?>
+        <?!= include('hlekspansi'); ?>
+        <?!= include('hlperingkat'); ?>
         <!-- Aset & Laba -->
         <?!= include('aset'); ?>
         <?!= include('laba'); ?>
@@ -1449,6 +1577,13 @@
         <?!= include('poskur'); ?>
         <?!= include('eksflpp'); ?>
         <?!= include('posflpp'); ?>
+        <!-- NPF -->
+        <?!= include('npftotal'); ?>
+        <?!= include('npfkorp'); ?>
+        <?!= include('npfumkm'); ?>
+        <?!= include('npfkons'); ?>
+        <?!= include('npfkur'); ?>
+        <?!= include('npfflpp'); ?>
         <!-- Rasio -->
         <?!= include('roa'); ?>
         <?!= include('ni'); ?>

@@ -1,0 +1,70 @@
+<!-- ================= FILE: npfkons.html — NPF / NPF Konsumer =================
+     Sumber data: sheet "NPF Kons" (kolom % NPF, NPF Nom, NOA).
+     Layout: KPI % NPF, Nom NPF, NOA NPF (masing-masing YoY, Ytd, Mtm, RBB/C) •
+     Trend % NPF, Nom & NOA • Realisasi terhadap Target % NPF • Leaderboard % NPF
+     Unit Kerja (urut sesuai unit kerja) • Tabel Realisasi % NPF. -->
+<style>
+  /* Warna aksen halaman (tag judul, ikon judul kartu) */
+  #page-npfkons { --accent: #dc2626; }
+</style>
+
+<div id="page-npfkons" class="page">
+  <div class="page-head">
+    <div class="page-head-left">
+      <span class="page-tag">NPF: KONSUMER</span>
+      <span class="page-sub-info" id="npfkons-info">-</span>
+    </div>
+    <button class="btn-back-highlight" onclick="bukaHalamanHighlight()">
+      <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i><span>Kembali ke Ringkasan</span>
+    </button>
+  </div>
+
+  <!-- KPI (data sesuai Tanggal Data) -->
+  <div class="kpi-grid-5" data-kpi="npfkons-pct" data-label="% NPF" data-icon="percent" data-theme="bg-npf"></div>
+  <div class="kpi-grid-5" data-kpi="npfkons-nom" data-label="Nom NPF" data-icon="alert-triangle" data-theme="bg-main"></div>
+  <div class="kpi-grid-5" data-kpi="npfkons-noa" data-label="NOA NPF" data-icon="users" data-theme="bg-alt"></div>
+
+  <!-- TREND (data sesuai Series Data) -->
+  <div class="chart-card">
+    <div class="chart-card-header">
+      <h3><i data-lucide="line-chart" style="width:18px;height:18px;color:var(--accent);"></i><span>Trend % NPF, Nom NPF & NOA NPF</span></h3>
+      <span class="chart-badge" id="npfkons-badge-trend">-</span>
+    </div>
+    <div class="canvas-line-wrap" style="height: 300px;"><canvas id="npfkons-trend"></canvas></div>
+  </div>
+
+  <!-- REALISASI & LEADERBOARD -->
+  <div class="middle-charts-grid">
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <h3><i data-lucide="bar-chart-3" style="width:18px;height:18px;color:var(--accent);"></i><span>Realisasi terhadap Target % NPF</span></h3>
+        <span class="chart-badge" id="npfkons-badge-target">-</span>
+      </div>
+      <div class="canvas-mid-wrap"><canvas id="npfkons-target"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <h3><i data-lucide="award" style="width:18px;height:18px;color:var(--accent);"></i><span>Leaderboard Realisasi % NPF Unit Kerja</span></h3>
+      </div>
+      <div class="canvas-mid-wrap"><canvas id="npfkons-leader"></canvas></div>
+    </div>
+  </div>
+
+  <!-- TABEL -->
+  <div class="table-card">
+    <div class="chart-card-header">
+      <h3><i data-lucide="table" style="width:18px;height:18px;color:var(--accent);"></i><span>Tabel Realisasi % NPF per Konsolidasi / per Unit Kerja</span></h3>
+      <span class="chart-badge" id="npfkons-badge-table">-</span>
+    </div>
+    <div class="table-responsive">
+      <table class="realisasi-table">
+        <thead><tr><th>No</th><th>Unit Kerja</th><th class="num-col">% NPF</th><th class="num-col">Nom NPF</th><th class="num-col">NOA NPF</th><th class="num-col">Target % NPF</th><th class="num-col">YoY</th><th class="num-col">Ytd</th><th class="num-col">Mtm</th><th class="num-col">% RBB/C</th></tr></thead>
+        <tbody id="npfkons-table"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  PAGES.npfkons = halamanNpf({ page: 'npfkons', nama: 'NPF Konsumer', sheet: 'NPF Kons', warna: WARNA.merah });
+</script>
