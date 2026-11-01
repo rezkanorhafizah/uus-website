@@ -2,49 +2,10 @@
      Rancangan: pilihan Data (Aset, Laba, Pembiayaan, DPK, dst) • Tabel peringkat unit kerja
      (Aktual, Target, % RBB/C) diurutkan dari % RBB/C tertinggi • Khusus Pembiayaan UMKM,
      Konsumer dan Total DPK: tabel peringkat AO diurutkan dari % achievement tertinggi.
-     Data mengikuti filter Tanggal Data, Konsolidasi Cabang dan Unit Kerja. -->
+     Filter halaman ini hanya Tanggal Data dan Data; peringkat mencakup seluruh unit kerja UUS
+     dan seluruh AO. Kartu filter "Data" dipindahkan ke baris filter utama (filter.html). -->
 <style>
   #page-hlperingkat { --accent: #b45309; }
-
-  .rank-toolbar {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-    background: #ffffff;
-    border-radius: 14px;
-    padding: 12px 16px;
-    border: 1px solid rgba(10, 115, 64, 0.08);
-  }
-
-  .rank-toolbar label {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 10px;
-    font-weight: 700;
-    color: var(--primary-green);
-    text-transform: uppercase;
-    letter-spacing: 0.4px;
-  }
-
-  .rank-toolbar select {
-    min-width: 240px;
-    border: 1px solid #d1e2d7;
-    border-radius: 10px;
-    padding: 8px 12px;
-    font-size: 13px;
-    font-weight: 600;
-    color: #1e293b;
-    background: #f8fafc;
-    outline: none;
-    cursor: pointer;
-  }
-
-  .rank-toolbar .hint {
-    font-size: 11.5px;
-    color: var(--text-muted);
-  }
 
   table.rank-table td.rank-col,
   table.rank-table th.rank-col {
@@ -101,6 +62,12 @@
   }
 </style>
 
+<!-- Kartu filter "Data": dipindahkan ke baris filter utama saat halaman dimuat -->
+<div class="filter-card" id="hlrDataCard" data-halaman="hlperingkat" style="display: none;">
+  <label class="filter-label" for="hlrData"><i data-lucide="database" style="width:13px;height:13px;"></i> Data</label>
+  <select id="hlrData" onchange="gantiDataPeringkat()"></select>
+</div>
+
 <div id="page-hlperingkat" class="page">
   <div class="page-head">
     <div class="page-head-left">
@@ -110,12 +77,6 @@
     <button class="btn-back-highlight" onclick="bukaHalamanHighlight()">
       <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i><span>Kembali ke Ringkasan</span>
     </button>
-  </div>
-
-  <div class="rank-toolbar">
-    <label for="hlrData"><i data-lucide="database" style="width:13px;height:13px;"></i> Data</label>
-    <select id="hlrData" onchange="gantiDataPeringkat()"></select>
-    <span class="hint">Peringkat dihitung pada Tanggal Data yang dipilih.</span>
   </div>
 
   <!-- PERINGKAT UNIT KERJA -->
@@ -166,6 +127,13 @@
     { id: 'depo', label: 'Deposito', sheet: 'Depo 1' }
   ];
 
+  // Letakkan kartu "Data" di samping "Tanggal Data" pada baris filter utama.
+  (function () {
+    const grid = document.querySelector('.filter-grid');
+    const kartu = document.getElementById('hlrDataCard');
+    if (grid && kartu) grid.appendChild(kartu);
+  })();
+
   function dataPeringkatAktif() {
     const sel = document.getElementById('hlrData');
     if (!sel.options.length) {
@@ -193,7 +161,7 @@
       const pct = it.rasio === null || it.rasio === undefined ? 0 : Math.max(0, Math.min(it.rasio, 1.5)) / 1.5 * 100;
       const warna = it.rasio !== null && it.rasio >= 1 ? WARNA.hijau : (it.rasio !== null && it.rasio >= 0.8 ? WARNA.oranye : WARNA.merah);
       return `
-        <tr class="${it.terpilih ? 'row-selected' : ''}">
+        <tr>
           <td class="rank-col"><span class="rank-badge ${r <= 3 ? 'rank-' + r : ''}">${r}</span></td>
           <td><strong>${esc(it.nama)}</strong>${it.sub ? `<span class="rank-sub">${esc(it.sub)}</span>` : ''}</td>
           <td class="num-col">${fmtNilai(it.v, fmtAktual)}</td>
@@ -203,30 +171,9 @@
     }).join('');
   }
 
-  // Singkatan nama kantor di sheet AO yang berbeda dengan nama unit kerja.
-  const HLR_ALIAS_KANTOR = { BJBQMALL: 'BANJARBARUQMALL' };
-
-  function kunciKantor(nama) {
-    const k = (nama || '').toUpperCase()
-      .replace(/^[0-9]+\s*-\s*/, '')     // kode cabang "9935-"
-      .replace(/^ZONASI\s+/, '')
-      .replace(/\b(KCS|KCPS)\b/g, '')
-      .replace(/[^A-Z]/g, '');
-    return HLR_ALIAS_KANTOR[k] || k;
-  }
-
-  /** Mencocokkan kantor AO ("9935-KCPS PARINGIN", "9931-KCPS GATOT SUBROT") dengan unit kerja. */
-  function unitDariKantorAo(kantor) {
-    const ak = kunciKantor(kantor);
-    if (!ak) return null;
-    return anggotaKonsolidasi(ENTITAS_UUS).find(u => {
-      const uk = kunciKantor(u);
-      return uk === ak || uk.startsWith(ak) || ak.startsWith(uk);
-    }) || null;
-  }
-
   PAGES.hlperingkat = {
     title: () => 'HIGHLIGHT KINERJA / PERINGKAT UNIT KERJA & AO',
+    filter: ['tanggal'], // hanya Tanggal Data (+ kartu Data milik halaman ini)
     primary: () => dataPeringkatAktif().sheet,
     sheets: () => {
       const d = dataPeringkatAktif();
@@ -235,18 +182,19 @@
 
     render(ctx) {
       const d = dataPeringkatAktif();
-      setTeks('hlr-info', `${ctx.konsol} • ${ctx.label}`);
+      const unitKerja = anggotaKonsolidasi(ENTITAS_UUS); // seluruh unit kerja UUS
+      setTeks('hlr-info', `${d.label} • ${ctx.label}`);
 
       // ---------- Peringkat unit kerja ----------
       setTeks('hlr-judul-unit', `Peringkat Unit Kerja — ${d.label}`);
-      setTeks('hlr-badge-unit', `${ctx.konsol} • ${ctx.label}`);
+      setTeks('hlr-badge-unit', `Periode: ${ctx.label}`);
       const tbodyUnit = document.getElementById('hlrTableUnit');
       if (!sheetAda(d.sheet)) {
         tbodyUnit.innerHTML = `<tr><td colspan="5" class="table-empty">Sheet "${esc(d.sheet)}" belum tersedia di Spreadsheet.</td></tr>`;
       } else {
-        const items = urutRasio(ctx.anggota.map(u => {
+        const items = urutRasio(unitKerja.map(u => {
           const k = kinerja(d.sheet, u, ctx.p);
-          return { nama: u, v: k.v, t: k.t, rasio: k.rbb, terpilih: u === ctx.entity };
+          return { nama: u, v: k.v, t: k.t, rasio: k.rbb };
         }).filter(it => it.v !== null));
         tbodyUnit.innerHTML = items.length
           ? barisPeringkat(items, 'rp')
@@ -259,7 +207,7 @@
       if (!d.ao) return;
 
       setTeks('hlr-judul-ao', `Peringkat AO — ${d.label}`);
-      setTeks('hlr-badge-ao', `${ctx.entity} • ${ctx.label}`);
+      setTeks('hlr-badge-ao', `Periode: ${ctx.label}`);
       const tbodyAo = document.getElementById('hlrTableAo');
       if (!sheetAda(d.ao)) {
         tbodyAo.innerHTML = `<tr><td colspan="5" class="table-empty">Sheet "${esc(d.ao)}" belum tersedia di Spreadsheet.</td></tr>`;
@@ -267,13 +215,8 @@
         return;
       }
 
-      // Batasi AO sesuai filter konsolidasi / unit kerja bila kantornya dapat dicocokkan.
-      const lingkup = new Set(ctx.entity === ctx.konsol ? ctx.anggota : [ctx.entity]);
       const semuaPeriode = daftarPeriode(d.ao);
-      const rows = (DATA[d.ao] || []).filter(r => r.p === ctx.p).filter(r => {
-        const unit = unitDariKantorAo(r.c);
-        return !unit || lingkup.has(unit);
-      });
+      const rows = (DATA[d.ao] || []).filter(r => r.p === ctx.p);
       const items = urutRasio(rows.map(r => ({ nama: r.u, sub: r.c, v: r.v, t: r.t, rasio: r.rbb !== null && r.rbb !== undefined ? r.rbb : (r.v !== null && r.t ? r.v / r.t : null) })));
       tbodyAo.innerHTML = items.length
         ? barisPeringkat(items, 'rp')

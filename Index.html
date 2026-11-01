@@ -891,7 +891,7 @@
     function renderHalamanAktif() {
       const page = PAGES[STATE.page];
       if (!page) return;
-      perbaruiOpsiFilter(page.primary()); // filter.html
+      perbaruiOpsiFilter(page.primary(), page); // filter.html
       const ctx = bangunKonteks(page);
       try {
         page.render(ctx);
@@ -912,6 +912,7 @@
 
       document.querySelectorAll('.page').forEach(el => el.classList.toggle('active', el.id === 'page-' + pageId));
       document.getElementById('breadcrumb').textContent = PAGES[pageId].title();
+      aturFilterHalaman(PAGES[pageId]); // filter.html
       perbaruiHighlightSidebar();
       window.scrollTo({ top: 0, behavior: 'smooth' });
       muatData(false);

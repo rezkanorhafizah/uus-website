@@ -24,6 +24,7 @@ Edit `MENU_CONFIG` di bagian `<script>`: urutan array = urutan di sidebar.
 - Logo, judul "Unit Usaha Syariah", dan teks "Menu Navigasi" diubah langsung di markup `<aside>`; lebar sidebar di `--sidebar-width`.
 
 ### Filter
+Setiap halaman bisa membatasi filter yang tampil lewat properti `filter` di `PAGES` (mis. `filter: ['tanggal']`).
 - **Tanggal Data**: posisi bulan untuk KPI, leaderboard, dan tabel.
 - **Tahun** (checkbox, bisa pilih beberapa): tahun yang ditampilkan di grafik trend / realisasi. Minimal satu tahun harus dicentang.
 - **Series Data**: `Bulanan` (semua bulan, default), `Triwulanan` (akhir Mar/Jun/Sep/Des), `Semester` (akhir Jun/Des), `Tahunan` (akhir Des).
@@ -85,7 +86,7 @@ dengan format `"<Nama Sheet>|<Nama Kolom>"`, mis. `"NPF UMKM|NPF Nom"` atau `"Ru
   menampilkan **jumlah** bulan dalam periode tersebut; kartu KPI menampilkan nilai bulan Tanggal Data + Ytd.
 - **Peringkat AO** baru tersedia satu sheet tanpa kolom indikator, jadi Pembiayaan UMKM, Konsumer, dan DPK
   memakai sheet yang sama. Bila nanti dipisah per indikator, ganti nama sheet di `HLR_DATA` (`hlperingkat.html`).
-  AO disaring sesuai filter konsolidasi / unit kerja berdasarkan nama kantornya (mis. `9935-KCPS PARINGIN`).
+  Halaman ini hanya memakai filter **Tanggal Data** dan **Data**; peringkat mencakup seluruh unit kerja UUS dan seluruh AO.
 
 ### Sheet yang belum ada di data mentah
 

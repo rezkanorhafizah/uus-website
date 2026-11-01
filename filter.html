@@ -2,11 +2,14 @@
      Berlaku untuk semua halaman: Tanggal Data • Tahun (checkbox, boleh pilih beberapa) •
      Series Data (Bulanan / Triwulanan / Semester / Tahunan) • Konsolidasi Cabang • Unit Kerja.
      - Tanggal Data   : posisi untuk KPI, leaderboard dan tabel.
-     - Tahun & Series : periode yang ditampilkan di grafik trend / realisasi. -->
+     - Tahun & Series : periode yang ditampilkan di grafik trend / realisasi.
+     Halaman bisa membatasi filter yang tampil lewat properti "filter" di PAGES, mis.
+     PAGES.hlperingkat.filter = ['tanggal'] (kunci: tanggal, tahun, series, konsolidasi, unit).
+     Kartu filter khusus halaman diberi atribut data-halaman="<id halaman>". -->
 <style>
   .filter-grid {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(var(--kolom-filter, 5), minmax(0, 1fr));
     gap: 14px;
   }
 
@@ -140,7 +143,7 @@
   .tahun-catatan.peringatan { color: #b45309; }
 
   @media (max-width: 1200px) {
-    .filter-grid { grid-template-columns: repeat(3, 1fr); }
+    .filter-grid:not(.filter-ringkas) { grid-template-columns: repeat(3, 1fr); }
   }
 
   @media (max-width: 760px) {
@@ -149,12 +152,12 @@
 </style>
 
 <div class="filter-grid">
-  <div class="filter-card">
+  <div class="filter-card" data-filter="tanggal">
     <label class="filter-label" for="filterTanggal"><i data-lucide="calendar" style="width:13px;height:13px;"></i> Tanggal Data</label>
     <select id="filterTanggal" onchange="terapkanFilter()"></select>
   </div>
 
-  <div class="filter-card tahun-dropdown" id="filterTahun">
+  <div class="filter-card tahun-dropdown" id="filterTahun" data-filter="tahun">
     <label class="filter-label"><i data-lucide="calendar-range" style="width:13px;height:13px;"></i> Tahun</label>
     <button type="button" class="tahun-toggle" onclick="toggleTahunDropdown(event)">
       <span id="filterTahunRingkas">Semua Tahun</span><i data-lucide="chevron-down"></i>
@@ -169,7 +172,7 @@
     </div>
   </div>
 
-  <div class="filter-card">
+  <div class="filter-card" data-filter="series">
     <label class="filter-label" for="filterSeries"><i data-lucide="layers" style="width:13px;height:13px;"></i> Series Data</label>
     <select id="filterSeries" onchange="terapkanFilter()">
       <option value="Bulanan" selected>Bulanan</option>
@@ -179,7 +182,7 @@
     </select>
   </div>
 
-  <div class="filter-card">
+  <div class="filter-card" data-filter="konsolidasi">
     <label class="filter-label" for="filterKonsolidasi"><i data-lucide="building-2" style="width:13px;height:13px;"></i> Konsolidasi Cabang</label>
     <select id="filterKonsolidasi" onchange="onKonsolidasiChange()">
       <option value="Unit Usaha Syariah">Unit Usaha Syariah</option>
@@ -189,7 +192,7 @@
     </select>
   </div>
 
-  <div class="filter-card">
+  <div class="filter-card" data-filter="unit">
     <label class="filter-label" for="filterUnitKerja"><i data-lucide="map-pin" style="width:13px;height:13px;"></i> Unit Kerja</label>
     <select id="filterUnitKerja" onchange="terapkanFilter()"></select>
   </div>
@@ -329,8 +332,30 @@
     renderHalamanAktif();
   }
 
+  /* ---------- Filter yang tampil per halaman ---------- */
+  /**
+   * page.filter (opsional): daftar kunci filter yang ditampilkan; tanpa properti ini semua tampil.
+   * Kartu ber-atribut data-halaman hanya tampil di halaman tersebut.
+   */
+  function aturFilterHalaman(page) {
+    const grid = document.querySelector('.filter-grid');
+    if (!grid) return;
+    const tampil = page && page.filter;
+    let jumlah = 0;
+    grid.querySelectorAll('.filter-card').forEach(el => {
+      const kunci = el.dataset.filter;
+      const halaman = el.dataset.halaman;
+      const lihat = halaman ? halaman === STATE.page : (!tampil || tampil.includes(kunci));
+      el.style.display = lihat ? '' : 'none';
+      if (lihat) jumlah++;
+    });
+    grid.style.setProperty('--kolom-filter', Math.max(jumlah, 1));
+    grid.classList.toggle('filter-ringkas', jumlah <= 3);
+  }
+
   /* ---------- Dipanggil Index.html sebelum halaman dirender ---------- */
-  function perbaruiOpsiFilter(sheetUtama) {
+  function perbaruiOpsiFilter(sheetUtama, page) {
+    aturFilterHalaman(page);
     perbaruiOpsiTanggal(sheetUtama);
     perbaruiOpsiTahun(sheetUtama);
     perbaruiOpsiUnit();
