@@ -35,6 +35,11 @@ var CONFIG = {
   // Lama sesi login (detik).
   SESSION_SECONDS: 3600,
 
+  // Tanggal "Update Data" yang tampil di topbar dibaca dari sel ini.
+  // Nama sheet dicoba berurutan (tidak peka spasi / huruf besar-kecil).
+  UPDATE_DATA_SHEETS: ['Update Data', 'Updata Data'],
+  UPDATE_DATA_CELL: 'B1',
+
 };
 
 function doGet(e) {
@@ -270,6 +275,28 @@ function normalizeSheet_(values, kolomNilai) {
   return rows;
 }
 
+/* ======================= TANGGAL UPDATE DATA ======================= */
+
+var NAMA_BULAN_ = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'];
+
+/**
+ * Membaca tanggal update data dari sheet "Update Data" sel B1.
+ * Sel bertipe tanggal diformat "3 Nov 2026"; teks ditampilkan apa adanya.
+ * @return {string} kosong bila sheet / sel belum diisi
+ */
+function bacaUpdateData_(ss) {
+  for (var i = 0; i < CONFIG.UPDATE_DATA_SHEETS.length; i++) {
+    var sheet = findSheetByFuzzyName(ss, CONFIG.UPDATE_DATA_SHEETS[i]);
+    if (!sheet) continue;
+    var nilai = sheet.getRange(CONFIG.UPDATE_DATA_CELL).getValue();
+    if (nilai instanceof Date && !isNaN(nilai.getTime())) {
+      return nilai.getDate() + ' ' + NAMA_BULAN_[nilai.getMonth()] + ' ' + nilai.getFullYear();
+    }
+    return (nilai === null || nilai === undefined) ? '' : nilai.toString().trim();
+  }
+  return '';
+}
+
 /* ======================= API UNTUK FRONTEND ======================= */
 
 /**
@@ -277,7 +304,7 @@ function normalizeSheet_(values, kolomNilai) {
  * @param {string} token   token sesi dari checkLogin
  * @param {string[]} sheetNames  daftar nama sheet, mis. ['DPK 1', 'NOA DPK 1', 'Run Off|Runoff Pby']
  * @param {boolean} force  true = abaikan cache server
- * @return {{success:boolean, sheets:Object, missing:string[], lastUpdated:string}}
+ * @return {{success:boolean, sheets:Object, missing:string[], updateData:string, lastUpdated:string}}
  */
 function getDataBundle(token, sheetNames, force) {
   if (!isValidSession_(token)) {
@@ -318,6 +345,7 @@ function getDataBundle(token, sheetNames, force) {
       success: true,
       sheets: sheets,
       missing: missing,
+      updateData: bacaUpdateData_(ss),
       lastUpdated: Utilities.formatDate(new Date(), Session.getScriptTimeZone() || 'Asia/Makassar', 'dd/MM/yyyy HH:mm:ss')
     };
   } catch (err) {
