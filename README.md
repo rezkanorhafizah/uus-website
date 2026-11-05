@@ -64,6 +64,10 @@ PAGES.giro = halamanIndikator({ page: 'giro', metric: 'Giro', sheet: 'Gir 1', fm
 
 ## Sumber Data (sheet)
 
+**Tanggal Update Data** di topbar dibaca dari sheet `Update Data` sel **B1** (isi dengan tanggal, mis. 3/11/2026 →
+tampil "Update Data: 3 Nov 2026"). Nama sheet dan sel diatur di `CONFIG.UPDATE_DATA_SHEETS` / `UPDATE_DATA_CELL`
+(`Kode.gs`). Bila sel kosong, badge kembali menampilkan waktu sinkron terakhir.
+
 Setiap indikator dibaca dari sheet berakhiran ` 1` dengan kolom:
 `Periode | Periode Date | Unit Kerja | <Nilai> | Target | Kelompok Unit Kerja | YoY | Ytd | Mtm | RBB/C`.
 Periode dikunci dari `Periode Date`, jadi label "Sep 2026" / "Sept 2026" tidak masalah.

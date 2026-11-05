@@ -873,7 +873,9 @@
           (res.missing || []).forEach(n => MISSING.add(n));
           STATE.lastUpdated = res.lastUpdated;
           const infoMissing = res.missing && res.missing.length ? ` • ${res.missing.length} sheet belum ada` : '';
-          setBadge(`Live Sheet • ${res.lastUpdated}${infoMissing}`, !!infoMissing);
+          // Tanggal dari sheet "Update Data" sel B1; bila kosong pakai waktu sinkron terakhir.
+          const ket = res.updateData ? `Update Data: ${res.updateData}` : `Live Sheet • ${res.lastUpdated}`;
+          setBadge(`${ket}${infoMissing}`, !!infoMissing);
           if (nomor === permintaanKe) renderHalamanAktif();
         })
         .withFailureHandler(function(err) {
